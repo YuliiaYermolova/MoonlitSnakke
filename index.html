@@ -23,8 +23,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preload" href="https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuGKYAZ9hjp-Ek-_EeA.woff2" as="font" type="font/woff2" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="preload" href="style.css?v=9" as="style" />
-  <link rel="stylesheet" href="style.css?v=9" />
+  <link rel="preload" href="style.css?v=10" as="style" />
+  <link rel="stylesheet" href="style.css?v=10" />
 </head>
 <body>
   <script>
@@ -522,7 +522,7 @@
   <!-- Spark-to-card launcher -->
   <div class="spark-launcher" id="sparkLauncher" aria-hidden="true"></div>
 
-  <script src="app.js?v=23" defer></script>
+  <script src="app.js?v=24" defer></script>
   <script>
     // ── Spark animation + click-handler patch ──
     document.addEventListener('DOMContentLoaded', function () {
@@ -684,22 +684,53 @@
         }
       }, true);
 
-      // ── Action buttons (Fav, Share, Export) ──
+      // ── Action buttons (Fav, Export) ──
+      // LocalStorage helpers for favorites
+      function getSavedCards() {
+        try { return JSON.parse(localStorage.getItem('snk_saved') || '[]'); } catch { return []; }
+      }
+      function setSavedCards(ids) {
+        try { localStorage.setItem('snk_saved', JSON.stringify(ids)); } catch {}
+      }
+      function isCardSaved(id) {
+        return getSavedCards().includes(id);
+      }
+      function toggleSaveCard(id) {
+        const saved = getSavedCards();
+        const idx = saved.indexOf(id);
+        if (idx === -1) saved.push(id); else saved.splice(idx, 1);
+        setSavedCards(saved);
+        return idx === -1; // returns true if now saved
+      }
+      function updateFavButton() {
+        const btn = document.getElementById('modalFav');
+        if (!btn || !state.deck.length) return;
+        const card = state.deck[state.idx];
+        const saved = isCardSaved(card.id);
+        btn.setAttribute('aria-pressed', String(saved));
+        btn.textContent = saved ? '♥' : '♡';
+        if (saved) btn.classList.add('saved'); else btn.classList.remove('saved');
+      }
+
       document.getElementById('modalFav')?.addEventListener('click', e => {
         e.stopImmediatePropagation();
         if (!state.deck.length) return;
         const card = state.deck[state.idx];
-        // Try to use app.js toggleSave if available
-        if (typeof toggleSave === 'function') {
-          toggleSave(card.id);
-        } else {
-          // Fallback: just show feedback
-          const btn = document.getElementById('modalFav');
-          const isSaved = btn?.getAttribute('aria-pressed') === 'true';
-          btn?.setAttribute('aria-pressed', String(!isSaved));
-          btn.textContent = isSaved ? '♡' : '♥';
-        }
+        const nowSaved = toggleSaveCard(card.id);
+        updateFavButton();
+        // Show toast
+        const msg = nowSaved ? { en: 'Saved!', no: 'Lagret!', ru: 'Сохранено!' } : { en: 'Removed', no: 'Fjernet', ru: 'Удалено' };
+        const L = getLang();
+        const toast = document.getElementById('toast');
+        if (toast) { toast.textContent = msg[L] || msg.en; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 1500); }
       }, true);
+
+      // Update fav button when card changes
+      const origShowCard = showCard;
+      showCard = function(card) {
+        origShowCard(card);
+        updateFavButton();
+      };
 
       document.getElementById('modalExport')?.addEventListener('click', async (e) => {
         e.stopImmediatePropagation();
