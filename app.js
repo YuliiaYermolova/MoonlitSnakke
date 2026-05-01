@@ -1047,70 +1047,22 @@ function readLastRound() {
 
 function syncResumeButton() {
   const btn = document.getElementById('btnResume');
+  const badge = document.getElementById('resumeChipCount');
   const lastRound = readLastRound();
   
-  if (!btn) {
-    console.log('[Snakke] btnResume not found');
-    return;
-  }
+  if (!btn || !badge) return;
   
   const hasRound = lastRound && Array.isArray(lastRound.cardIds) && lastRound.cardIds.length > 0;
   
-  console.log('[Snakke] syncResumeButton:', {
-    hasRound,
-    lastRoundExists: !!lastRound,
-    cardIdsArray: Array.isArray(lastRound?.cardIds),
-    cardIdsLength: lastRound?.cardIds?.length,
-    btnHidden: btn.hasAttribute('hidden'),
-    btnDisplay: btn.style.display
-  });
-  
   if (hasRound) {
-    // Force button to be visible in its natural position
-    btn.style.cssText = `
-      display: inline-flex !important;
-      visibility: visible !important;
-      opacity: 1 !important;
-      pointer-events: auto !important;
-      position: relative !important;
-      z-index: 501 !important;
-      background-color: rgba(8,18,36,0.45) !important;
-      color: var(--w) !important;
-      border: 1px solid var(--border) !important;
-      padding: 9px 12px !important;
-      font-size: 12px !important;
-      transform: none !important;
-      transition: none !important;
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
-    `;
-    
-    // Re-add event listener to ensure it works
-    btn.addEventListener('click', (e) => {
-      console.log('[Snakke] Continue clicked from syncResumeButton');
-      e.preventDefault();
-      e.stopPropagation();
-      resumeLastRound();
-    });
-    
     const total = lastRound.cardIds.length;
-    const progress = Math.min((lastRound.idx || 0) + 1, total);
-    const badge = document.getElementById('resumeChipCount');
-    
-    if (badge) {
-      badge.textContent = `${progress}/${total}`;
-    }
-    
-    console.log('[Snakke] Button should be visible now:', {
-      hidden: btn.hasAttribute('hidden'),
-      display: btn.style.display,
-      progress: `${progress}/${total}`
-    });
+    const current = lastRound.currentIndex || lastRound.idx || 0;
+    const progress = Math.min(current + 1, total);
+    badge.textContent = `${progress}/${total}`;
+    badge.removeAttribute('hidden');
   } else {
-    btn.setAttribute('hidden', '');
-    btn.style.display = 'none';
-    btn.style.visibility = 'hidden';
-    btn.style.pointerEvents = 'none';
+    badge.textContent = '0/0';
+    badge.setAttribute('hidden', '');
   }
 }
 
@@ -1638,6 +1590,68 @@ function closeSavedOverlay() {
 document.getElementById('btnSaved')?.addEventListener('click', openSavedOverlay);
 document.getElementById('savedClose')?.addEventListener('click', closeSavedOverlay);
 document.getElementById('savedOverlay')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeSavedOverlay(); });
+
+// ── RESUME OVERLAY ──
+function renderResumeGrid() {
+  const grid = document.getElementById('resumeGrid');
+  const empty = document.getElementById('resumeEmpty');
+  if (!grid) return;
+  
+  const lastRound = readLastRound();
+  
+  if (!lastRound || !lastRound.cardIds || lastRound.cardIds.length === 0) {
+    grid.innerHTML = '';
+    empty?.classList.add('visible');
+    return;
+  }
+  
+  empty?.classList.remove('visible');
+  
+  // Show last round as a clickable session card
+  const current = lastRound.currentIndex || 0;
+  const total = lastRound.cardIds.length;
+  const progress = `${current + 1}/${total}`;
+  
+  const card = document.createElement('div');
+  card.className = 'card-item';
+  card.style.cursor = 'pointer';
+  card.innerHTML = `
+    <div class="card-item__top">
+      <span class="card-item__num">${progress}</span>
+      <span class="card-item__tag card-item__tag--deep">${lastRound.scenarioTitle || 'Session'}</span>
+    </div>
+    <div class="card-item__preview">
+      ${lastRound.scenarioDesc || 'Continue your last game session'}
+    </div>
+    <div class="card-item__footer">
+      <span class="card-item__cta">${t({en: 'Continue →', no: 'Fortsett →', ru: 'Продолжить →'})}</span>
+    </div>
+  `;
+  
+  card.addEventListener('click', () => {
+    closeResumeOverlay();
+    resumeLastRound();
+  });
+  
+  grid.innerHTML = '';
+  grid.appendChild(card);
+}
+
+function openResumeOverlay() {
+  renderResumeGrid();
+  const ov = document.getElementById('resumeOverlay');
+  const panel = ov?.querySelector('.saved-modal');
+  if (ov && panel) openOverlay(ov, panel, panel);
+}
+
+function closeResumeOverlay() {
+  const ov = document.getElementById('resumeOverlay');
+  if (ov) closeOverlay(ov);
+}
+
+document.getElementById('btnResume')?.addEventListener('click', openResumeOverlay);
+document.getElementById('resumeClose')?.addEventListener('click', closeResumeOverlay);
+document.getElementById('resumeOverlay')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeResumeOverlay(); });
 
 // ── CUSTOM CARDS ──
 function deleteCustom(id) {
@@ -2240,54 +2254,15 @@ function init() {
   openSharedCardFromHash();
   setupModalListeners();
 
-  // Continue button handler
-  const btnResume = document.getElementById('btnResume');
-  console.log('[Snakke] init: btnResume found:', !!btnResume);
-  if (btnResume) {
-    btnResume.addEventListener('click', (e) => {
-      console.log('[Snakke] Continue clicked, event:', e);
-      e.preventDefault();
-      e.stopPropagation();
-      resumeLastRound();
-    });
-    console.log('[Snakke] init: event listener added to btnResume');
-  } else {
-    console.error('[Snakke] init: btnResume not found');
-  }
+  // Resume button handlers are set up in the resumeOverlay section
 
   window.addEventListener('scroll', syncMobileChrome, { passive: true });
   window.addEventListener('resize', syncMobileChrome);
 
-  // Ensure resume button is synced after all init
-  console.log('[Snakke] init: calling syncResumeButton after timeout');
+  // Sync resume button counter after init
   setTimeout(() => {
-    console.log('[Snakke] init: timeout callback, calling syncResumeButton');
     syncResumeButton();
-    
-    // Force button to be visible after sync
-    setTimeout(() => {
-      const btn = document.getElementById('btnResume');
-      if (btn) {
-        console.log('[Snakke] Force showing button after timeout');
-        btn.removeAttribute('hidden');
-        btn.style.display = 'inline-flex';
-        btn.style.visibility = 'visible';
-        btn.style.pointerEvents = 'auto';
-        console.log('[Snakke] Button forced visible:', {
-          hidden: btn.hasAttribute('hidden'),
-          display: btn.style.display,
-          visible: btn.offsetWidth > 0 && btn.offsetHeight > 0,
-          rect: btn.getBoundingClientRect(),
-          computedStyle: {
-            color: getComputedStyle(btn).color,
-            backgroundColor: getComputedStyle(btn).backgroundColor,
-            opacity: getComputedStyle(btn).opacity,
-            zIndex: getComputedStyle(btn).zIndex
-          }
-        });
-      }
-    }, 200);
-  }, 100);
+  }, 200);
 }
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);

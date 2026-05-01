@@ -173,10 +173,10 @@
         <button class="btn-ghost" id="btnScroll" type="button" data-en="Choose game" data-no="Velg spill" data-ru="Выбрать игру">Choose game</button>
       </div>
       <div class="hero__utility">
-        <button class="hero-chip" id="btnResume" type="button" hidden>
+        <button class="hero-chip" id="btnResume" type="button">
           <span class="hero-chip__glyph">↺</span>
           <span data-en="Continue" data-no="Fortsett" data-ru="Продолжить">Continue</span>
-          <span class="hero-chip__count" id="resumeChipCount">1/12</span>
+          <span class="hero-chip__count" id="resumeChipCount" hidden>0/0</span>
         </button>
         <button class="hero-chip" id="btnSaved" type="button">
           <span class="hero-chip__glyph">♥</span>
@@ -517,6 +517,21 @@
         <button class="icon-close" id="savedClose" type="button" aria-label="Close">✕</button>
       </div>
       <div class="saved-grid" id="savedGrid"></div>
+    </div>
+  </div>
+
+  <!-- ── RESUME OVERLAY ── -->
+  <div class="overlay" id="resumeOverlay">
+    <div class="saved-modal" role="dialog" aria-modal="true" aria-labelledby="resumeTitle" tabindex="-1">
+      <div class="saved-modal__head">
+        <div>
+          <p class="section-eyebrow" data-en="Continue where you left off" data-no="Fortsett der du slapp" data-ru="Продолжить с того места, где остановились">Continue where you left off</p>
+          <h2 class="saved-modal__title" id="resumeTitle" data-en="Continue game" data-no="Fortsett spill" data-ru="Продолжить игру">Continue game</h2>
+        </div>
+        <button class="icon-close" id="resumeClose" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="saved-grid" id="resumeGrid"></div>
+      <div class="resume-empty" id="resumeEmpty" data-en="No active sessions. Start a new game to create one." data-no="Ingen aktive økter. Start et nytt spill for å opprette en." data-ru="Нет активных сессий. Начните новую игру, чтобы создать.">No active sessions. Start a new game to create one.</div>
     </div>
   </div>
 

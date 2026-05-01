@@ -1181,8 +1181,15 @@ textarea {
 
 .saved-empty {
   color: var(--w30); font-size: 14px;
-  text-align: center; padding: 56px 0;
+  padding: 18px 0 6px;
 }
+
+.resume-empty {
+  color: var(--w30); font-size: 14px;
+  padding: 36px; text-align: center;
+  display: none;
+}
+.resume-empty.visible { display: block; }
 
 @media(max-width: 640px) {
   .saved-modal__head { padding: 24px 20px 16px; }
