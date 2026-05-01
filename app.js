@@ -1671,9 +1671,9 @@ function renderResumeGrid() {
   if (!grid) return;
   
   const lastRound = readLastRound();
+  grid.innerHTML = '';
   
   if (!lastRound || !lastRound.cardIds || lastRound.cardIds.length === 0) {
-    grid.innerHTML = '';
     empty?.classList.add('visible');
     return;
   }
@@ -1681,7 +1681,7 @@ function renderResumeGrid() {
   empty?.classList.remove('visible');
   
   // Show last round as a clickable session card
-  const current = lastRound.currentIndex || 0;
+  const current = lastRound.currentIndex !== undefined ? lastRound.currentIndex : (lastRound.idx || 0);
   const total = lastRound.cardIds.length;
   const progress = `${current + 1}/${total}`;
   
@@ -1701,12 +1701,13 @@ function renderResumeGrid() {
     </div>
   `;
   
-  card.addEventListener('click', () => {
+  card.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     closeResumeOverlay();
-    resumeLastRound();
+    setTimeout(() => resumeLastRound(), 150);
   });
   
-  grid.innerHTML = '';
   grid.appendChild(card);
 }
 
