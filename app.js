@@ -1,6 +1,7 @@
 'use strict';
 
 const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const IS_MOBILE = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
 const STORAGE = {
   lang: 'snk_lang',
   saved: 'snk_saved',
@@ -50,7 +51,7 @@ function removeStored(key) {
 // ── STARS + SHOOTING STARS ──
 (function () {
   const canvas = document.getElementById('starsCanvas');
-  if (!canvas || REDUCE_MOTION) return;
+  if (!canvas || REDUCE_MOTION || IS_MOBILE) return;
   const ctx    = canvas.getContext('2d');
   let W, H, stars = [], shooters = [];
 
@@ -112,7 +113,7 @@ function removeStored(key) {
 // ── EMBER PARTICLES ──
 (function () {
   const canvas = document.getElementById('emberCanvas');
-  if (!canvas || REDUCE_MOTION) return;
+  if (!canvas || REDUCE_MOTION || IS_MOBILE) return;
   const ctx    = canvas.getContext('2d');
   let W, H, embers = [];
 
