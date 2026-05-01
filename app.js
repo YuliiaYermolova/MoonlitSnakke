@@ -1048,53 +1048,25 @@ function readLastRound() {
 function syncResumeButton() {
   const btn = document.getElementById('btnResume');
   const lastRound = readLastRound();
-  console.log('[Snakke] syncResumeButton called, btn:', !!btn, 'lastRound:', lastRound);
   
-  if (!btn) {
-    console.error('[Snakke] btnResume not found in DOM');
-    return;
-  }
+  if (!btn) return;
   
   const hasRound = lastRound && Array.isArray(lastRound.cardIds) && lastRound.cardIds.length > 0;
-  console.log('[Snakke] syncResumeButton:', { 
-    hasRound, 
-    lastRound,
-    cardIds: lastRound?.cardIds,
-    idx: lastRound?.idx,
-    cardIdsLength: lastRound?.cardIds?.length,
-    storageKey: STORAGE.lastRound,
-    localStorageRaw: localStorage.getItem(STORAGE.lastRound)
-  });
   
   if (hasRound) {
-    console.log('[Snakke] Showing button - hasRound is true');
-    
-    // Show button with proper styling
     btn.removeAttribute('hidden');
     btn.style.display = 'inline-flex';
     btn.style.visibility = 'visible';
     btn.style.pointerEvents = 'auto';
     
-    const total    = lastRound.cardIds.length;
+    const total = lastRound.cardIds.length;
     const progress = Math.min((lastRound.idx || 0) + 1, total);
-    const badge    = document.getElementById('resumeChipCount');
-    
-    console.log('[Snakke] Calculating progress:', { 
-      idx: lastRound.idx, 
-      total, 
-      progress: (lastRound.idx || 0) + 1,
-      finalProgress: progress 
-    });
+    const badge = document.getElementById('resumeChipCount');
     
     if (badge) {
       badge.textContent = `${progress}/${total}`;
-      console.log('[Snakke] Updated badge:', { progress, total });
-    } else {
-      console.error('[Snakke] resumeChipCount badge not found');
     }
-    
   } else {
-    console.log('[Snakke] Hiding button - hasRound is false');
     btn.setAttribute('hidden', '');
     btn.style.display = 'none';
     btn.style.visibility = 'hidden';
