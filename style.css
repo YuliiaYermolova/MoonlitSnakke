@@ -933,9 +933,10 @@ textarea {
 
 .card-modal__top { position:relative; z-index:3; display:flex; justify-content:space-between; align-items:center; }
 .card-modal__badge { font-size:10px; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:var(--teal); background:var(--teal-s); padding:5px 14px; border-radius:var(--pill); }
-.card-modal__actions { display:flex; gap:7px; }
+.card-modal__actions { display:flex; gap:7px; position:relative; z-index:10; }
 
 .icon-btn {
+  position:relative; z-index:10;
   background: var(--w05); border: none; color: var(--w60);
   width: 34px; height: 34px; border-radius: 50%;
   cursor: pointer; display: flex; align-items: center; justify-content: center;
@@ -1322,6 +1323,12 @@ body.day .stars-canvas { opacity: 0.3; }
   .hero__proof{flex-direction:column}
 }
 
+/* Ensure card modal buttons are visible and clickable */
+.card-modal__actions .icon-btn {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
 /* Ensure card modal buttons are visible on mobile */
 @media(max-width:640px){
   .card-modal__actions {
@@ -1332,6 +1339,7 @@ body.day .stars-canvas { opacity: 0.3; }
     width: 32px !important;
     height: 32px !important;
     font-size: 14px !important;
+    pointer-events: auto !important;
   }
 }
 
@@ -1420,10 +1428,19 @@ body.day .stars-canvas { opacity: 0.3; }
   background: rgba(255,255,255,0.18) !important;
   color: rgba(255,255,255,0.9) !important;
   border: 1px solid rgba(255,255,255,0.15) !important;
+  position: relative !important;
+  z-index: 100 !important;
+  pointer-events: auto !important;
 }
 .card-modal .icon-btn:hover {
   background: rgba(255,255,255,0.28) !important;
   color: #fff !important;
+}
+
+/* Ensure card-modal top section has proper z-index */
+.card-modal__top {
+  position: relative !important;
+  z-index: 100 !important;
 }
 .card-modal #modalFav.saved {
   color: #ffb3c8 !important;
