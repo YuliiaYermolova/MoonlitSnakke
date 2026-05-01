@@ -1131,8 +1131,15 @@ function syncResumeButton() {
     let checkCount = 0;
     const interval = setInterval(() => {
       checkCount++;
-      const rect = btn.getBoundingClientRect();
-      const computedStyle = getComputedStyle(btn);
+      const buttonElement = document.getElementById('btnResume');
+      if (!buttonElement) {
+        console.log('[Snakke] Button element not found in check');
+        clearInterval(interval);
+        return;
+      }
+      
+      const rect = buttonElement.getBoundingClientRect();
+      const computedStyle = getComputedStyle(buttonElement);
       const htmlElement = document.documentElement;
       
       console.log(`[Snakke] Button check ${checkCount}:`, {
@@ -1145,13 +1152,13 @@ function syncResumeButton() {
         zIndex: computedStyle.zIndex,
         isMobile: htmlElement.classList.contains('mobile'),
         windowWidth: window.innerWidth,
-        cssText: btn.style.cssText.substring(0, 100) + '...'
+        cssText: buttonElement.style.cssText.substring(0, 100) + '...'
       });
       
       // Force styles again if they're being overridden
       if (checkCount === 2 && rect.width === 0) {
         console.log('[Snakke] Re-applying forced styles');
-        btn.style.cssText = `
+        buttonElement.style.cssText = `
           display: inline-flex !important;
           visibility: visible !important;
           opacity: 1 !important;
