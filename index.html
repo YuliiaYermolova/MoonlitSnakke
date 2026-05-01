@@ -551,12 +551,14 @@
       const btnShuffle = document.getElementById('btnShuffle');
       const btnScroll  = document.getElementById('btnScroll');
 
-      // Live state for the active round
-      const state = {
-        deck: [],          // current pool (filtered by level or full)
-        idx: 0,            // index in deck
-        levelLabel: '',    // i18n label for the current round
-      };
+      // Use app.js globals so that Continue / resumeLastRound work seamlessly.
+      // deck, idx and roundMeta are declared in app.js; we just keep a local
+      // fallback for the badge label until roundMeta is set.
+      let levelLabel = '';
+
+      function persistIfReady() {
+        if (typeof persistLastRound === 'function') persistLastRound();
+      }
 
       // Always read the active language directly from the lang switcher,
       // so it stays correct even if app.js' global goes stale.
@@ -572,8 +574,8 @@
           if (v != null && v !== '') el.textContent = v;
         });
         // Also update the open card question text if a card is showing.
-        if (state.deck.length && state.deck[state.idx]) {
-          const card = state.deck[state.idx];
+        if (typeof deck !== 'undefined' && deck.length && deck[idx]) {
+          const card = deck[idx];
           const q = document.getElementById('modalQuestion');
           if (q) q.textContent = card[L] || card.en || card.ru || '';
         }
@@ -621,12 +623,13 @@
         const cardIndex = document.getElementById('cardIndex');
         const cardTotal = document.getElementById('cardTotal');
         const fill = document.getElementById('progressFill');
-        if (cardIndex) cardIndex.textContent = String(state.idx + 1);
-        if (cardTotal) cardTotal.textContent = String(state.deck.length);
-        if (fill) fill.style.width = ((state.idx + 1) / Math.max(1, state.deck.length) * 100) + '%';
+        if (cardIndex) cardIndex.textContent = String((typeof idx !== 'undefined' ? idx : 0) + 1);
+        if (cardTotal) cardTotal.textContent = String((typeof deck !== 'undefined' ? deck : []).length);
+        if (fill) fill.style.width = (((typeof idx !== 'undefined' ? idx : 0) + 1) / Math.max(1, (typeof deck !== 'undefined' ? deck : []).length) * 100) + '%';
 
         const badge = document.getElementById('modalDeckLabel');
-        if (badge && state.levelLabel) badge.textContent = state.levelLabel;
+        const labelText = (typeof roundMeta !== 'undefined' && roundMeta.label) ? roundMeta.label : levelLabel;
+        if (badge && labelText) badge.textContent = labelText;
 
         try { panel.dataset.cat = card.category || 'light'; } catch {}
 
@@ -655,31 +658,39 @@
         if (typeof allCards !== 'function') return;
         const all = allCards();
         const filtered = category ? all.filter(c => c.category === category) : all;
-        state.deck = shuffle(filtered.length ? filtered : all);
-        state.idx = 0;
-        state.levelLabel = label || '';
-        if (state.deck.length) showCard(state.deck[0]);
+        const shuffled = shuffle(filtered.length ? filtered : all);
+        // Sync with app.js globals
+        deck = shuffled;
+        idx = 0;
+        levelLabel = label || '';
+        try {
+          roundMeta = { source: category || 'random', label: label || '', partnerMode: false };
+        } catch (e) {}
+        persistIfReady();
+        if (deck.length) showCard(deck[0]);
       }
 
       function nextCard() {
-        if (!state.deck.length) return;
-        state.idx = (state.idx + 1) % state.deck.length;
+        if (!deck.length) return;
+        idx = (idx + 1) % deck.length;
         const q = document.getElementById('modalQuestion');
         if (q) q.classList.add('fade-out');
         setTimeout(() => {
-          showCard(state.deck[state.idx]);
+          showCard(deck[idx]);
           if (q) q.classList.remove('fade-out');
         }, 180);
+        persistIfReady();
       }
       function prevCard() {
-        if (!state.deck.length) return;
-        state.idx = (state.idx - 1 + state.deck.length) % state.deck.length;
+        if (!deck.length) return;
+        idx = (idx - 1 + deck.length) % deck.length;
         const q = document.getElementById('modalQuestion');
         if (q) q.classList.add('fade-out');
         setTimeout(() => {
-          showCard(state.deck[state.idx]);
+          showCard(deck[idx]);
           if (q) q.classList.remove('fade-out');
         }, 180);
+        persistIfReady();
       }
 
       // Modal close / next / prev
@@ -688,21 +699,22 @@
         if (e.target === e.currentTarget) closeCardModal();
       });
       document.getElementById('modalNext')?.addEventListener('click', e => {
-        if (!state.deck.length) return;
+        if (!deck.length) return;
         e.stopImmediatePropagation();
         nextCard();
       }, true);
       document.getElementById('modalPrev')?.addEventListener('click', e => {
-        if (!state.deck.length) return;
+        if (!deck.length) return;
         e.stopImmediatePropagation();
         prevCard();
       }, true);
       document.getElementById('modalShuffle')?.addEventListener('click', e => {
-        if (!state.deck.length) return;
+        if (!deck.length) return;
         e.stopImmediatePropagation();
-        state.deck = shuffle(state.deck);
-        state.idx = 0;
-        showCard(state.deck[0]);
+        deck = shuffle(deck);
+        idx = 0;
+        showCard(deck[0]);
+        persistIfReady();
       }, true);
 
       // ── Action buttons (Fav, Export) ──
@@ -718,15 +730,15 @@
       }
       function toggleSaveCard(id) {
         const saved = getSavedCards();
-        const idx = saved.indexOf(id);
-        if (idx === -1) saved.push(id); else saved.splice(idx, 1);
+        const i = saved.indexOf(id);
+        if (i === -1) saved.push(id); else saved.splice(i, 1);
         setSavedCards(saved);
-        return idx === -1; // returns true if now saved
+        return i === -1; // returns true if now saved
       }
       function updateFavButton() {
         const btn = document.getElementById('modalFav');
-        if (!btn || !state.deck.length) return;
-        const card = state.deck[state.idx];
+        if (!btn || !deck.length) return;
+        const card = deck[idx];
         const saved = isCardSaved(card.id);
         btn.setAttribute('aria-pressed', String(saved));
         btn.textContent = saved ? '♥' : '♡';
@@ -734,9 +746,9 @@
       }
 
       document.getElementById('modalFav')?.addEventListener('click', e => {
-        if (!state.deck.length) return;
+        if (!deck.length) return;
         e.stopImmediatePropagation();
-        const card = state.deck[state.idx];
+        const card = deck[idx];
         const nowSaved = toggleSaveCard(card.id);
         updateFavButton();
         // Show toast
@@ -754,9 +766,9 @@
       };
 
       document.getElementById('modalExport')?.addEventListener('click', async (e) => {
-        if (!state.deck.length) return;
+        if (!deck.length) return;
         e.stopImmediatePropagation();
-        const card = state.deck[state.idx];
+        const card = deck[idx];
         const text = card[getLang()] || card.en || card.ru || '';
 
         // Create canvas and export
