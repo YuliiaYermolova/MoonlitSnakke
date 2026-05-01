@@ -1084,7 +1084,28 @@ function syncResumeButton() {
       border: 2px solid white !important;
       padding: 10px 15px !important;
       font-size: 16px !important;
+      transform: none !important;
+      transition: none !important;
     `;
+    
+    // Immediate check after applying styles
+    setTimeout(() => {
+      const rect = btn.getBoundingClientRect();
+      console.log('[Snakke] Immediate check after style application:', {
+        rect: {
+          top: rect.top,
+          left: rect.left,
+          width: rect.width,
+          height: rect.height,
+          bottom: rect.bottom,
+          right: rect.right
+        },
+        visible: rect.width > 0 && rect.height > 0,
+        inViewport: rect.top >= 0 && rect.left >= 0 && 
+                   rect.bottom <= window.innerHeight && 
+                   rect.right <= window.innerWidth
+      });
+    }, 10);
     
     btn.removeAttribute('hidden');
     
