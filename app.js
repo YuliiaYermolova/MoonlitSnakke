@@ -2060,17 +2060,24 @@ syncFireButton = function () {
 };
 
 // ── INIT ──
-document.getElementById('heroCardCount').textContent = CARDS.length;
-renderScenarios();
-renderNotes();
-renderGrid();
-syncStaticLabels();
-applyLang(lang);
-livePreview();
-syncMobileChrome();
-openSharedCardFromHash();
-window.addEventListener('scroll', syncMobileChrome, { passive: true });
-window.addEventListener('resize', syncMobileChrome);
+function init() {
+  document.getElementById('heroCardCount').textContent = CARDS.length;
+  renderScenarios();
+  renderNotes();
+  renderGrid();
+  syncStaticLabels();
+  applyLang(lang);
+  livePreview();
+  syncMobileChrome();
+  openSharedCardFromHash();
+  window.addEventListener('scroll', syncMobileChrome, { passive: true });
+  window.addEventListener('resize', syncMobileChrome);
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
 
 // ── THEME TOGGLE ──
 const themeBtn = document.getElementById('themeBtn');

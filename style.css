@@ -39,6 +39,18 @@ html { scroll-behavior: smooth; }
 html.mobile .stars-canvas,
 html.mobile .ember-canvas { display: none !important; }
 
+/* Disable heavy effects on mobile for performance */
+html.mobile .fire-glow,
+html.mobile .fire-ground,
+html.mobile .smoke,
+html.mobile .moon-halo,
+html.mobile .aurora { display: none !important; }
+html.mobile .flame { animation: none !important; }
+html.mobile .moon-body { animation: none !important; }
+html.mobile [class*="fire-"] { filter: none !important; }
+html.mobile .session-counter,
+html.mobile .fire-btn { backdrop-filter: none !important; }
+
 body {
   background: var(--sky-0);
   color: var(--w);
