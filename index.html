@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snakke — Questions Game</title>
+  <meta name="description" content="A moonlit questions game for couples and lovers with 551 prompts, guided rounds, and custom cards in English, Norwegian, and Russian." />
+  <meta name="theme-color" content="#020810" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Snakke — Questions Game" />
+  <meta property="og:description" content="A moonlit questions game for couples and lovers with 551 prompts, guided rounds, and custom cards." />
+  <meta property="og:image" content="social-card.svg" />
+  <meta property="og:image:alt" content="Snakke moonlit conversation card game preview" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Snakke — Questions Game" />
+  <meta name="twitter:description" content="A moonlit questions game for couples and lovers with 551 prompts, guided rounds, and custom cards." />
+  <meta name="twitter:image" content="social-card.svg" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="manifest" href="site.webmanifest" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=4" />
+</head>
+<body>
+
+  <div class="sky"></div>
+  <div class="aurora"></div>
+  <canvas id="starsCanvas" class="stars-canvas"></canvas>
+  <canvas id="emberCanvas" class="ember-canvas"></canvas>
+
+  <!-- Lang -->
+  <div class="lang-toggle" role="group" aria-label="Language switcher">
+    <button class="lang-btn active" type="button" data-lang="en" aria-pressed="true">EN</button>
+    <span>/</span>
+    <button class="lang-btn" type="button" data-lang="no" aria-pressed="false">NO</button>
+    <span>/</span>
+    <button class="lang-btn" type="button" data-lang="ru" aria-pressed="false">RU</button>
+  </div>
+
+  <!-- Session -->
+  <div class="session-counter" id="sessionCounter" aria-live="polite">
+    <span class="session-counter__moon">☽</span>
+    <strong id="sessionCount">0</strong>
+    <span data-en="cards tonight" data-no="kort i natt" data-ru="карт сегодня">cards tonight</span>
+  </div>
+
+  <!-- ── HERO ── -->
+  <section class="hero" id="hero">
+
+    <header class="header">
+      <div class="logo">
+        <div class="logo__moon"></div>
+        <span class="logo__name">Snakke</span>
+      </div>
+      <span class="header__tag" data-en="For real conversations" data-no="For ekte samtaler" data-ru="Для живых разговоров">For real conversations</span>
+      <button class="theme-btn" id="themeBtn" type="button" aria-label="Toggle theme">☀</button>
+      <button class="rules-btn" id="rulesBtn" type="button" data-en="About" data-no="Om prosjektet" data-ru="О проекте" aria-haspopup="dialog" aria-controls="rulesOverlay">About</button>
+    </header>
+
+    <div class="mountains-wrap" id="mountainsWrap">
+      <svg class="mtn mtn--1" viewBox="0 0 1440 300" preserveAspectRatio="none"><path d="M0,240 L120,170 L200,210 L320,130 L440,195 L560,110 L680,175 L800,95 L920,165 L1040,110 L1160,175 L1280,125 L1440,155 L1440,300 L0,300 Z"/></svg>
+      <svg class="mtn mtn--2" viewBox="0 0 1440 300" preserveAspectRatio="none">
+        <path d="M0,260 L90,185 L180,225 L300,145 L420,210 L540,130 L660,200 L780,115 L900,185 L1020,130 L1140,195 L1260,150 L1380,175 L1440,165 L1440,300 L0,300 Z"/>
+        <path d="M540,130 L555,148 L525,148 Z" fill="rgba(220,235,255,0.4)"/>
+        <path d="M780,115 L796,134 L764,134 Z" fill="rgba(220,235,255,0.35)"/>
+      </svg>
+      <svg class="mtn mtn--3" viewBox="0 0 1440 320" preserveAspectRatio="none">
+        <path d="M0,280 L80,200 L160,240 L260,155 L380,225 L480,145 L600,215 L700,130 L820,205 L940,155 L1060,220 L1180,165 L1300,210 L1440,185 L1440,320 L0,320 Z"/>
+        <path d="M480,145 L500,168 L460,168 Z" fill="rgba(220,235,255,0.5)"/>
+        <path d="M700,130 L722,155 L678,155 Z" fill="rgba(220,235,255,0.45)"/>
+      </svg>
+      <svg class="mtn mtn--4" viewBox="0 0 1440 340" preserveAspectRatio="none"><path d="M0,310 L100,240 L200,275 L320,195 L440,260 L540,185 L660,250 L760,175 L880,245 L980,200 L1100,260 L1220,215 L1340,255 L1440,235 L1440,340 L0,340 Z"/></svg>
+      <svg class="mtn mtn--5" viewBox="0 0 1440 360" preserveAspectRatio="none">
+        <path d="M0,360 L0,330 L140,295 L280,330 L420,285 L560,325 L700,288 L840,320 L980,290 L1120,318 L1260,295 L1440,310 L1440,360 Z"/>
+        <g fill="#020810">
+          <rect x="28" y="294" width="7" height="40"/><polygon points="31,265 15,298 47,298"/><polygon points="31,250 12,292 50,292"/>
+          <rect x="58" y="300" width="5" height="35"/><polygon points="60,272 47,302 73,302"/>
+          <rect x="88" y="305" width="4" height="30"/><polygon points="90,280 79,307 101,307"/>
+          <rect x="1300" y="293" width="7" height="42"/><polygon points="1303,262 1287,296 1319,296"/><polygon points="1303,247 1284,291 1322,291"/>
+          <rect x="1330" y="300" width="5" height="35"/><polygon points="1332,272 1319,302 1345,302"/>
+          <rect x="1358" y="296" width="6" height="39"/><polygon points="1361,265 1346,298 1376,298"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="moon-wrap" id="moonWrap">
+      <div class="moon-halo moon-halo--3"></div>
+      <div class="moon-halo moon-halo--2"></div>
+      <div class="moon-halo moon-halo--1"></div>
+      <div class="moon-body">
+        <div class="moon-body__crater" style="top:22%;left:25%;width:14%;height:14%"></div>
+        <div class="moon-body__crater" style="top:48%;left:50%;width:9%;height:9%"></div>
+        <div class="moon-body__crater" style="top:32%;left:62%;width:6%;height:6%"></div>
+        <div class="moon-body__shadow"></div>
+      </div>
+    </div>
+
+    <div class="campfire" id="campfire">
+      <div class="fire-glow fire-glow--outer"></div>
+      <div class="fire-glow fire-glow--inner"></div>
+      <div class="fire-ground"></div>
+      <div class="flames">
+        <div class="flame flame--log"></div>
+        <div class="flame flame--a"></div>
+        <div class="flame flame--b"></div>
+        <div class="flame flame--c"></div>
+        <div class="flame flame--d"></div>
+        <div class="flame flame--e"></div>
+      </div>
+      <div class="logs">
+        <div class="log log--l"></div>
+        <div class="log log--r"></div>
+        <div class="log log--c"></div>
+      </div>
+      <div class="fire-smoke">
+        <div class="smoke smoke--1"></div>
+        <div class="smoke smoke--2"></div>
+        <div class="smoke smoke--3"></div>
+        <div class="smoke smoke--4"></div>
+        <div class="smoke smoke--5"></div>
+      </div>
+
+      <!-- Real fire-crackle audio -->
+      <audio id="fireAudio" loop preload="none">
+        <source data-src="fire.mp3" type="audio/mpeg"/>
+      </audio>
+
+      <button class="fire-btn" id="fireBtn" type="button" title="Toggle campfire sound" aria-label="Toggle campfire sound" aria-pressed="false">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 6-4 10.5-2 10.5 1.5 0 2-1 2-1s1 3-2 4.5c4 0 7-3 7-7 0-2-1-4.5-5-7z"/></svg>
+      </button>
+    </div>
+
+    <div class="hero__content">
+      <p class="hero__eyebrow">
+        <span class="eyebrow__dot"></span>
+        <span data-en="For couples &amp; lovers" data-no="For par og elskende" data-ru="Для пар и влюблённых">For couples &amp; lovers</span>
+      </p>
+      <h1 class="hero__title">
+        <em data-en="Moonlit" data-no="Måneskinn" data-ru="Лунные">Moonlit</em>
+        <span data-en="confessions" data-no="bekjennelser" data-ru="признания">confessions</span>
+      </h1>
+      <p class="hero__desc" data-en="Find the path to yourself and to the one you love." data-no="Finn veien til deg selv og til den du elsker." data-ru="Найди путь к себе и к тому, кого любишь.">Find the path to yourself and to the one you love.</p>
+      <div class="hero__proof" aria-label="Snakke highlights">
+        <div class="hero-proof__item">
+          <strong id="heroCardCount">551</strong>
+          <span data-en="questions" data-no="spørsmål" data-ru="вопрос">questions</span>
+        </div>
+        <div class="hero-proof__item">
+          <strong>3</strong>
+          <span data-en="guided rounds" data-no="ferdige runder" data-ru="готовых маршрута">guided rounds</span>
+        </div>
+        <div class="hero-proof__item">
+          <strong>3</strong>
+          <span data-en="languages" data-no="språk" data-ru="языка">languages</span>
+        </div>
+      </div>
+      <div class="hero__actions">
+        <button class="btn-primary" id="btnShuffle" type="button">
+          <span class="btn-primary__glyph">✦</span>
+          <span data-en="Start game" data-no="Start spill" data-ru="Начать игру">Start game</span>
+        </button>
+        <button class="btn-ghost" id="btnScroll" type="button" data-en="Choose game" data-no="Velg spill" data-ru="Выбрать игру">Choose game</button>
+      </div>
+      <div class="hero__utility">
+        <button class="hero-chip" id="btnPartner" type="button">
+          <span class="hero-chip__glyph">♡</span>
+          <span data-en="Play with partner" data-no="Spill sammen" data-ru="Играть вдвоём">Play with partner</span>
+        </button>
+        <button class="hero-chip" id="btnResume" type="button">
+          <span class="hero-chip__glyph">↺</span>
+          <span data-en="Continue last round" data-no="Fortsett runden" data-ru="Продолжить раунд">Continue last round</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="hero__contexts">
+      <span class="ctx-pill" data-en="first date" data-no="første date" data-ru="первое свидание">first date</span>
+      <span class="ctx-pill" data-en="late nights" data-no="sene netter" data-ru="поздние вечера">late nights</span>
+      <span class="ctx-pill" data-en="deep feelings" data-no="dype følelser" data-ru="глубокие чувства">deep feelings</span>
+    </div>
+
+  </section>
+
+  <!-- ── CARDS ── -->
+  <section class="cards-section" id="cardsSection">
+    <div class="section-head">
+      <div>
+        <p class="section-eyebrow" data-en="The collection" data-no="Samlingen" data-ru="Коллекция">The collection</p>
+        <h2 class="section-title" data-en="Choose your deck" data-no="Velg ditt kortstokk" data-ru="Выберите колоду">Choose your deck</h2>
+      </div>
+      <div class="filter-bar">
+        <button class="filt active" type="button" data-filter="all"   data-en="All"      data-no="Alle"      data-ru="Все">All</button>
+        <button class="filt" type="button" data-filter="light"        data-en="☽ Light"  data-no="☽ Lette"   data-ru="☽ Лёгкие">☽ Light</button>
+        <button class="filt" type="button" data-filter="deep"         data-en="✦ Deep"   data-no="✦ Dype"    data-ru="✦ Глубокие">✦ Deep</button>
+        <button class="filt" type="button" data-filter="bold"         data-en="♡ Bold"   data-no="♡ Modige"  data-ru="♡ Смелые">♡ Bold</button>
+        <button class="filt" type="button" data-filter="custom"       data-en="✎ Mine"   data-no="✎ Mine"    data-ru="✎ Мои">✎ Mine</button>
+        <button class="filt" type="button" data-filter="saved"        data-en="★ Saved"  data-no="★ Lagret"  data-ru="★ Сохранённые">★ Saved</button>
+        <button class="filt" type="button" data-filter="history"      data-en="⟲ History" data-no="⟲ Historie" data-ru="⟲ История">⟲ History</button>
+        <input type="search" class="card-search" id="cardSearch" placeholder="Search cards..." data-en-placeholder="Search cards..." data-no-placeholder="Søk kort..." data-ru-placeholder="Поиск карточек...">
+      </div>
+    </div>
+    <div class="session-rail" aria-labelledby="scenarioTitle">
+      <div class="session-rail__copy">
+        <p class="section-eyebrow" data-en="Start here" data-no="Start her" data-ru="Начать здесь">Start here</p>
+        <h3 class="session-rail__title" id="scenarioTitle" data-en="Guided rounds for tonight" data-no="Ferdige runder for i kveld" data-ru="Готовые маршруты на вечер">Guided rounds for tonight</h3>
+        <p class="session-rail__desc" data-en="Short paths when you want momentum instead of choosing from hundreds of cards." data-no="Korte ruter når du vil ha flyt i stedet for å velge blant hundrevis av kort." data-ru="Короткие маршруты, когда хочется начать разговор сразу, а не выбирать из сотен карточек.">Short paths when you want momentum instead of choosing from hundreds of cards.</p>
+      </div>
+      <div class="session-grid" id="scenarioGrid"></div>
+    </div>
+    <div class="journal-section" id="journalSection" hidden>
+      <div class="journal-head">
+        <div>
+          <p class="section-eyebrow" data-en="Saved moments" data-no="Lagrede øyeblikk" data-ru="Сохранённые моменты">Saved moments</p>
+          <h3 class="journal-title" data-en="Recent round notes" data-no="Nylige rundenotater" data-ru="Последние заметки о раундах">Recent round notes</h3>
+        </div>
+        <button class="journal-clear" id="btnClearNotes" type="button" data-en="Clear" data-no="Tøm" data-ru="Очистить">Clear</button>
+      </div>
+      <div class="journal-grid" id="noteGrid"></div>
+    </div>
+    <div class="cards-masonry" id="cardsGrid"></div>
+  </section>
+
+  <!-- ── HOME CATEGORIES ── -->
+  <section class="home-cats" id="homeCats">
+    <button class="home-cat home-cat--light" data-cat="light" type="button">
+      <div class="home-cat__art">
+        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="60" cy="60" r="17" stroke="rgba(255,255,255,0.9)" stroke-width="1.5"/>
+          <circle cx="60" cy="60" r="27" stroke="rgba(255,255,255,0.35)" stroke-width="0.8" stroke-dasharray="2.5 4"/>
+          <line x1="60" y1="27" x2="60" y2="16" stroke="rgba(255,255,255,0.8)" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="60" y1="93" x2="60" y2="104" stroke="rgba(255,255,255,0.8)" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="27" y1="60" x2="16" y2="60" stroke="rgba(255,255,255,0.8)" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="93" y1="60" x2="104" y2="60" stroke="rgba(255,255,255,0.8)" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="39.4" y1="39.4" x2="31.5" y2="31.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="80.6" y1="80.6" x2="88.5" y2="88.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="80.6" y1="39.4" x2="88.5" y2="31.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="39.4" y1="80.6" x2="31.5" y2="88.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.2" stroke-linecap="round"/>
+          <circle cx="60" cy="13" r="2" fill="rgba(255,255,255,0.7)"/>
+          <circle cx="60" cy="107" r="2" fill="rgba(255,255,255,0.7)"/>
+          <circle cx="13" cy="60" r="2" fill="rgba(255,255,255,0.7)"/>
+          <circle cx="107" cy="60" r="2" fill="rgba(255,255,255,0.7)"/>
+          <circle cx="18" cy="18" r="1.5" fill="rgba(255,255,255,0.45)"/>
+          <circle cx="102" cy="18" r="1" fill="rgba(255,255,255,0.35)"/>
+          <circle cx="18" cy="102" r="1" fill="rgba(255,255,255,0.35)"/>
+          <circle cx="102" cy="102" r="1.5" fill="rgba(255,255,255,0.45)"/>
+        </svg>
+      </div>
+      <div class="home-cat__info">
+        <span class="home-cat__name" data-en="Warm" data-no="Varme" data-ru="Тёплые">Warm</span>
+        <span class="home-cat__sub" data-en="conversations" data-no="samtaler" data-ru="разговоры">conversations</span>
+        <span class="home-cat__count" data-en="182 cards" data-no="182 kort" data-ru="182 карточки">182 cards</span>
+      </div>
+    </button>
+    <button class="home-cat home-cat--deep" data-cat="deep" type="button">
+      <div class="home-cat__art">
+        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 68 22 A 34 34 0 1 0 68 98 A 22 34 0 0 1 68 22" stroke="rgba(255,255,255,0.9)" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="30" cy="32" r="2.5" fill="rgba(255,255,255,0.8)"/>
+          <circle cx="95" cy="38" r="1.5" fill="rgba(255,255,255,0.6)"/>
+          <circle cx="28" cy="78" r="1.5" fill="rgba(255,255,255,0.5)"/>
+          <circle cx="98" cy="82" r="2" fill="rgba(255,255,255,0.7)"/>
+          <circle cx="52" cy="18" r="1" fill="rgba(255,255,255,0.5)"/>
+          <circle cx="105" cy="60" r="1.2" fill="rgba(255,255,255,0.4)"/>
+          <circle cx="18" cy="55" r="1" fill="rgba(255,255,255,0.4)"/>
+          <line x1="30" y1="28" x2="30" y2="24" stroke="rgba(255,255,255,0.6)" stroke-width="1" stroke-linecap="round"/>
+          <line x1="26" y1="32" x2="22" y2="32" stroke="rgba(255,255,255,0.6)" stroke-width="1" stroke-linecap="round"/>
+          <line x1="95" y1="34" x2="95" y2="31" stroke="rgba(255,255,255,0.5)" stroke-width="1" stroke-linecap="round"/>
+          <line x1="92" y1="38" x2="89" y2="38" stroke="rgba(255,255,255,0.5)" stroke-width="1" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="home-cat__info">
+        <span class="home-cat__name" data-en="Honest" data-no="Ærlige" data-ru="Честные">Honest</span>
+        <span class="home-cat__sub" data-en="conversations" data-no="samtaler" data-ru="разговоры">conversations</span>
+        <span class="home-cat__count" data-en="187 cards" data-no="187 kort" data-ru="187 карточек">187 cards</span>
+      </div>
+    </button>
+    <button class="home-cat home-cat--bold" data-cat="bold" type="button">
+      <div class="home-cat__art">
+        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="60,18 64,52 98,56 64,60 60,94 56,60 22,56 56,52" stroke="rgba(255,255,255,0.9)" stroke-width="1.5" stroke-linejoin="round"/>
+          <circle cx="60" cy="56" r="9" stroke="rgba(255,255,255,0.55)" stroke-width="0.9"/>
+          <circle cx="60" cy="56" r="4" fill="rgba(255,255,255,0.5)"/>
+          <circle cx="18" cy="18" r="2" fill="rgba(255,255,255,0.55)"/>
+          <circle cx="102" cy="18" r="1.5" fill="rgba(255,255,255,0.45)"/>
+          <circle cx="18" cy="96" r="1.5" fill="rgba(255,255,255,0.45)"/>
+          <circle cx="102" cy="96" r="2" fill="rgba(255,255,255,0.55)"/>
+          <line x1="60" y1="8" x2="60" y2="4" stroke="rgba(255,255,255,0.4)" stroke-width="1" stroke-linecap="round"/>
+          <line x1="60" y1="104" x2="60" y2="108" stroke="rgba(255,255,255,0.4)" stroke-width="1" stroke-linecap="round"/>
+          <line x1="8" y1="56" x2="4" y2="56" stroke="rgba(255,255,255,0.4)" stroke-width="1" stroke-linecap="round"/>
+          <line x1="112" y1="56" x2="116" y2="56" stroke="rgba(255,255,255,0.4)" stroke-width="1" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="home-cat__info">
+        <span class="home-cat__name" data-en="Brave" data-no="Modige" data-ru="Смелые">Brave</span>
+        <span class="home-cat__sub" data-en="conversations" data-no="samtaler" data-ru="разговоры">conversations</span>
+        <span class="home-cat__count" data-en="182 cards" data-no="182 kort" data-ru="182 карточки">182 cards</span>
+      </div>
+    </button>
+  </section>
+
+  <!-- ── RULES MODAL ── -->
+  <div class="overlay" id="rulesOverlay">
+    <div class="rules-modal" role="dialog" aria-modal="true" aria-labelledby="rulesTitle" tabindex="-1">
+      <div class="rules-modal__head">
+        <h2 class="rules-modal__title" id="rulesTitle" data-en="About the project" data-no="Om prosjektet" data-ru="О проекте">About the project</h2>
+        <button class="icon-close" id="rulesClose" type="button" aria-label="Close rules">✕</button>
+      </div>
+      <div class="rules-body" id="rulesBody"></div>
+    </div>
+  </div>
+
+  <!-- ── CREATE MODAL ── -->
+  <div class="overlay" id="createOverlay">
+    <div class="create-modal" role="dialog" aria-modal="true" aria-labelledby="createTitle" tabindex="-1">
+      <div class="create-modal__head">
+        <h3 class="create-modal__title" id="createTitle" data-en="Your card" data-no="Ditt kort" data-ru="Ваша карта">Your card</h3>
+        <button class="icon-close" id="createClose" type="button" aria-label="Close card creator">✕</button>
+      </div>
+      <div class="create-preview" id="createPreview">
+        <span class="create-preview__ph" data-en="Your question will appear here…" data-no="Spørsmålet ditt vises her…" data-ru="Ваш вопрос появится здесь…">Your question will appear here…</span>
+      </div>
+      <div class="create-form">
+        <div class="field">
+          <label class="field__label" data-en="Question (EN)" data-no="Spørsmål (EN)" data-ru="Вопрос (EN)">Question (EN)</label>
+          <textarea class="field__input" id="inputEN" rows="2" placeholder="Write your question…" maxlength="200"></textarea>
+        </div>
+        <div class="field">
+          <label class="field__label" data-en="Question (NO)" data-no="Spørsmål (NO)" data-ru="Вопрос (NO)">Question (NO)</label>
+          <textarea class="field__input" id="inputNO" rows="2" placeholder="Skriv spørsmålet ditt…" maxlength="200"></textarea>
+        </div>
+        <div class="field">
+          <label class="field__label" data-en="Question (RU)" data-no="Spørsmål (RU)" data-ru="Вопрос (RU)">Question (RU)</label>
+          <textarea class="field__input" id="inputRU" rows="2" placeholder="Напишите ваш вопрос…" maxlength="200"></textarea>
+        </div>
+        <div class="field">
+          <label class="field__label" data-en="Category" data-no="Kategori" data-ru="Категория">Category</label>
+          <div class="cat-row">
+            <label class="cat-opt"><input type="radio" name="cat" value="light" checked/><span>☽ Light</span></label>
+            <label class="cat-opt"><input type="radio" name="cat" value="deep"/><span>✦ Deep</span></label>
+            <label class="cat-opt"><input type="radio" name="cat" value="bold"/><span>♡ Bold</span></label>
+          </div>
+        </div>
+        <button class="btn-submit" id="createSubmit" type="button" data-en="Add to deck" data-no="Legg til" data-ru="Добавить">Add to deck</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CATEGORY OVERLAY ── -->
+  <div class="overlay" id="categoryOverlay">
+    <div class="category-modal" role="dialog" aria-modal="true" tabindex="-1">
+      <div class="category-modal__head">
+        <h2 class="category-modal__title" data-en="Choose game" data-no="Velg spill" data-ru="Выберите игру">Choose game</h2>
+        <button class="icon-close icon-btn" id="categoryClose" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="cat-tiles">
+        <button class="cat-tile cat-tile--light" data-cat="light" type="button">
+          <span class="cat-tile__icon">✦</span>
+          <div class="cat-tile__info">
+            <span class="cat-tile__name" data-en="Sparks" data-no="Gnister" data-ru="Искры">Sparks</span>
+            <span class="cat-tile__desc" data-en="Light, warming questions to ease in — fun memories and dreams · 182 cards" data-no="Lette, varme spørsmål for å komme i gang — gode minner og drømmer · 182 kort" data-ru="Лёгкие, согревающие вопросы для разогрева — забавные воспоминания и мечты · 182 карточки">Light, warming questions to ease in — fun memories and dreams · 182 cards</span>
+          </div>
+          <span class="cat-tile__arrow">→</span>
+        </button>
+        <button class="cat-tile cat-tile--deep" data-cat="deep" type="button">
+          <span class="cat-tile__icon">❋</span>
+          <div class="cat-tile__info">
+            <span class="cat-tile__name" data-en="Warmth of the Flame" data-no="Flammens varme" data-ru="Тепло пламени">Warmth of the Flame</span>
+            <span class="cat-tile__desc" data-en="Deeper — values, fears, relationship hopes and personal boundaries · 187 cards" data-no="Dypere — verdier, frykt, forventninger og personlige grenser · 187 kort" data-ru="Глубже — ценности, страхи, ожидания от отношений и личные границы · 187 карточек">Deeper — values, fears, relationship hopes and personal boundaries · 187 cards</span>
+          </div>
+          <span class="cat-tile__arrow">→</span>
+        </button>
+        <button class="cat-tile cat-tile--bold" data-cat="bold" type="button">
+          <span class="cat-tile__icon">❄</span>
+          <div class="cat-tile__info">
+            <span class="cat-tile__name" data-en="Embers and Ashes" data-no="Glør og aske" data-ru="Угли и пепел">Embers and Ashes</span>
+            <span class="cat-tile__desc" data-en="The hardest conversations — wounds, hidden hurts, the dark past and vulnerability · 182 cards" data-no="De vanskeligste samtalene — sår, skjulte krenkelser, mørk fortid og sårbarhet · 182 kort" data-ru="Самые сложные разговоры — травмы, скрытые обиды, тёмное прошлое и уязвимости · 182 карточки">The hardest conversations — wounds, hidden hurts, the dark past and vulnerability · 182 cards</span>
+          </div>
+          <span class="cat-tile__arrow">→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAP TO DRAW SCREEN ── -->
+  <div class="overlay tap-overlay" id="tapOverlay">
+    <div class="tap-screen">
+      <div class="tap-sky"></div>
+      <div class="tap-aurora"></div>
+      <canvas id="tapStarsCanvas" class="tap-stars-canvas"></canvas>
+
+      <div class="tap-moon-wrap">
+        <div class="tap-moon-halo tap-moon-halo--3"></div>
+        <div class="tap-moon-halo tap-moon-halo--2"></div>
+        <div class="tap-moon-halo tap-moon-halo--1"></div>
+        <div class="tap-moon">
+          <div class="tap-moon-crater" style="top:25%;left:28%;width:12%;height:12%"></div>
+          <div class="tap-moon-crater" style="top:45%;left:52%;width:8%;height:8%"></div>
+        </div>
+      </div>
+
+      <div class="tap-card-deck">
+        <div class="tap-card-back tap-card-back--3"></div>
+        <div class="tap-card-back tap-card-back--2"></div>
+        <div class="tap-card-back tap-card-back--1"></div>
+        <div class="tap-card-placeholder">
+          <div class="tap-card-glow"></div>
+        </div>
+      </div>
+
+      <p class="tap-text" data-en="Tap to draw a card" data-no="Trykk for å trekke et kort" data-ru="Нажмите, чтобы вытянуть карту">
+        Tap to draw a card
+      </p>
+
+      <svg class="tap-mountains" viewBox="0 0 1440 200" preserveAspectRatio="none">
+        <path d="M0,160 L90,100 L180,135 L300,80 L420,120 L540,70 L660,115 L780,60 L900,110 L1020,75 L1140,120 L1260,85 L1380,105 L1440,95 L1440,200 L0,200 Z" fill="#08182e" opacity="0.6"/>
+        <path d="M0,180 L70,130 L140,155 L210,115 L280,145 L350,125 L420,160 L490,135 L560,165 L630,140 L700,170 L770,150 L840,175 L910,155 L980,180 L1050,165 L1120,185 L1190,170 L1260,190 L1330,175 L1400,195 L1440,185 L1440,200 L0,200 Z" fill="#060e1e" opacity="0.8"/>
+      </svg>
+
+      <div class="tap-fire-glow"></div>
+    </div>
+  </div>
+
+  <!-- ── CARD MODAL ── -->
+  <div class="overlay" id="modalOverlay">
+    <div class="modal-fire-glow" id="modalFireGlow"></div>
+    <div class="card-modal" role="dialog" aria-modal="true" aria-labelledby="modalQuestion" tabindex="-1">
+      <div class="card-modal__art" id="modalArt"></div>
+      <div class="card-modal__sky"></div>
+      <div class="card-modal__aurora"></div>
+      <div class="card-modal__fire-glow"></div>
+
+      <div class="card-modal__top">
+        <div class="card-modal__badge" id="modalDeckLabel"></div>
+        <div class="card-modal__actions">
+          <button class="icon-btn" id="modalExport" type="button" aria-label="Export card as image">📷</button>
+          <button class="icon-btn" id="modalShare" type="button" aria-label="Share card">↗</button>
+          <button class="icon-btn" id="modalFav" type="button" aria-pressed="false" aria-label="Save card">♡</button>
+          <button class="icon-btn" id="modalClose" type="button" aria-label="Close card">✕</button>
+        </div>
+      </div>
+
+      <div class="card-modal__body">
+        <p class="card-modal__turn" id="modalTurn" hidden>Partner A</p>
+        <p class="card-modal__question" id="modalQuestion">...</p>
+        <div class="card-modal__utility">
+          <button class="card-modal__pill" id="modalSaveNote" type="button" data-en="Save round note" data-no="Lagre rundenotat" data-ru="Сохранить заметку">Save round note</button>
+        </div>
+      </div>
+
+      <div class="card-modal__bottom">
+        <div class="progress-wrap">
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+          <span class="progress-txt"><span id="cardIndex">1</span> / <span id="cardTotal">10</span></span>
+        </div>
+        <div class="modal-nav">
+          <button class="icon-btn" id="modalPrev" type="button" aria-label="Previous card">←</button>
+          <button class="icon-btn modal-shuffle" id="modalShuffle" type="button" aria-label="Shuffle deck">⇌</button>
+          <button class="btn-next" id="modalNext" type="button">
+            <span data-en="Next" data-no="Neste" data-ru="Далее">Next</span> →
+          </button>
+        </div>
+      </div>
+      <p class="swipe-hint" data-en="← swipe →" data-no="← sveip →" data-ru="← свайп →">← swipe →</p>
+    </div>
+  </div>
+
+  <!-- ── NOTE MODAL ── -->
+  <div class="overlay" id="noteOverlay">
+    <div class="note-modal" role="dialog" aria-modal="true" aria-labelledby="noteTitle" tabindex="-1">
+      <div class="create-modal__head">
+        <h3 class="create-modal__title" id="noteTitle" data-en="Round note" data-no="Rundenotat" data-ru="Заметка о раунде">Round note</h3>
+        <button class="icon-close" id="noteClose" type="button" aria-label="Close round note">✕</button>
+      </div>
+      <div class="note-meta" id="noteMeta"></div>
+      <div class="create-form">
+        <div class="field">
+          <label class="field__label" for="noteMood" data-en="Mood" data-no="Stemning" data-ru="Настроение">Mood</label>
+          <select class="field__select" id="noteMood">
+            <option value="soft" data-en="Soft" data-no="Myk" data-ru="Мягко">Soft</option>
+            <option value="open" data-en="Open" data-no="Åpent" data-ru="Открыто">Open</option>
+            <option value="intense" data-en="Intense" data-no="Intenst" data-ru="Интенсивно">Intense</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="noteInput" data-en="What stayed with you?" data-no="Hva ble med deg videre?" data-ru="Что осталось с вами после раунда?">What stayed with you?</label>
+          <textarea class="field__input" id="noteInput" rows="4" maxlength="400" placeholder="Name the moment, the truth, or what you want to return to."></textarea>
+        </div>
+        <button class="btn-submit" id="noteSubmit" type="button" data-en="Save note" data-no="Lagre notat" data-ru="Сохранить заметку">Save note</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MUSIC PLAYER ── -->
+  <div class="music-player" id="musicPlayer">
+    <audio id="audio" loop preload="none" aria-label="Background music"><source data-src="bgmusic.mp3" type="audio/mpeg"/></audio>
+    <button class="music-play" id="musicPlay" type="button" aria-label="Play background music">
+      <svg id="iconPlay"  class="play-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      <svg id="iconPause" class="play-svg hidden" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+    </button>
+    <div class="music-meta">
+      <span class="music-title">Late Night R&B</span>
+      <div class="music-eq" id="musicEq"><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+    <div class="music-vol">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13" style="color:var(--w30)"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+      <input class="vol-slider" id="volSlider" type="range" min="0" max="1" step="0.05" value="0.55" aria-label="Music volume"/>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" aria-live="polite"></div>
+
+  <!-- Spark-to-card launcher -->
+  <div class="spark-launcher" id="sparkLauncher" aria-hidden="true"></div>
+
+  <script src="app.js?v=17"></script>
+  <script>
+    // ── Spark animation + click-handler patch ──
+    (function () {
+      const launcher   = document.getElementById('sparkLauncher');
+      const campfire   = document.getElementById('campfire');
+      const btnShuffle = document.getElementById('btnShuffle');
+      const btnScroll  = document.getElementById('btnScroll');
+
+      // Live state for the active round
+      const state = {
+        deck: [],          // current pool (filtered by level or full)
+        idx: 0,            // index in deck
+        levelLabel: '',    // i18n label for the current round
+      };
+
+      // Always read the active language directly from the lang switcher,
+      // so it stays correct even if app.js' global goes stale.
+      function getLang() {
+        return document.querySelector('.lang-btn.active')?.dataset.lang || 'en';
+      }
+
+      // Walk every translatable element and apply the current language.
+      function applyLangAll() {
+        const L = getLang();
+        document.querySelectorAll('[data-en]').forEach(el => {
+          const v = el.dataset[L];
+          if (v != null && v !== '') el.textContent = v;
+        });
+        // Also update the open card question text if a card is showing.
+        if (state.deck.length && state.deck[state.idx]) {
+          const card = state.deck[state.idx];
+          const q = document.getElementById('modalQuestion');
+          if (q) q.textContent = card[L] || card.en || card.ru || '';
+        }
+      }
+
+      // Wire the language switcher (the original handlers are unreliable).
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.lang-btn').forEach(b => {
+            b.classList.toggle('active', b === btn);
+            b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+          });
+          try { window.lang = btn.dataset.lang; } catch {}
+          document.documentElement.setAttribute('lang', btn.dataset.lang);
+          applyLangAll();
+          try { localStorage.setItem('snk_lang', btn.dataset.lang); } catch {}
+        }, true);
+      });
+
+      // ── Spark from campfire ──
+      function fireSpark() {
+        if (!launcher || !campfire) return;
+        const rect = campfire.getBoundingClientRect();
+        const sx = rect.left + rect.width  / 2;
+        const sy = rect.top  + rect.height * 0.18;
+        const s = document.createElement('div');
+        s.className = 'spark';
+        s.style.left = sx + 'px';
+        s.style.top  = sy + 'px';
+        launcher.appendChild(s);
+        setTimeout(() => s.remove(), 900);
+      }
+
+      // ── Card modal control ──
+      function showCard(card) {
+        if (!card) return;
+        const overlay = document.getElementById('modalOverlay');
+        const panel   = overlay?.querySelector('.card-modal');
+        if (!overlay || !panel) return;
+
+        const text = card[getLang()] || card.en || card.ru || '';
+        const q = document.getElementById('modalQuestion');
+        if (q) q.textContent = text;
+
+        const cardIndex = document.getElementById('cardIndex');
+        const cardTotal = document.getElementById('cardTotal');
+        const fill = document.getElementById('progressFill');
+        if (cardIndex) cardIndex.textContent = String(state.idx + 1);
+        if (cardTotal) cardTotal.textContent = String(state.deck.length);
+        if (fill) fill.style.width = ((state.idx + 1) / Math.max(1, state.deck.length) * 100) + '%';
+
+        const badge = document.getElementById('modalDeckLabel');
+        if (badge && state.levelLabel) badge.textContent = state.levelLabel;
+
+        try { panel.dataset.cat = card.category || 'light'; } catch {}
+
+        overlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        panel.focus?.();
+      }
+
+      function closeCardModal() {
+        const overlay = document.getElementById('modalOverlay');
+        if (!overlay) return;
+        overlay.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function startRound(category, label) {
+        if (typeof allCards !== 'function') return;
+        const all = allCards();
+        const filtered = category ? all.filter(c => c.category === category) : all;
+        state.deck = shuffle(filtered.length ? filtered : all);
+        state.idx = 0;
+        state.levelLabel = label || '';
+        if (state.deck.length) showCard(state.deck[0]);
+      }
+
+      function nextCard() {
+        if (!state.deck.length) return;
+        state.idx = (state.idx + 1) % state.deck.length;
+        const q = document.getElementById('modalQuestion');
+        if (q) q.classList.add('fade-out');
+        setTimeout(() => {
+          showCard(state.deck[state.idx]);
+          if (q) q.classList.remove('fade-out');
+        }, 180);
+      }
+      function prevCard() {
+        if (!state.deck.length) return;
+        state.idx = (state.idx - 1 + state.deck.length) % state.deck.length;
+        const q = document.getElementById('modalQuestion');
+        if (q) q.classList.add('fade-out');
+        setTimeout(() => {
+          showCard(state.deck[state.idx]);
+          if (q) q.classList.remove('fade-out');
+        }, 180);
+      }
+
+      // Modal close / next / prev
+      document.getElementById('modalClose')?.addEventListener('click', closeCardModal);
+      document.getElementById('modalOverlay')?.addEventListener('click', e => {
+        if (e.target === e.currentTarget) closeCardModal();
+      });
+      document.getElementById('modalNext')?.addEventListener('click', e => {
+        e.stopImmediatePropagation();
+        nextCard();
+      }, true);
+      document.getElementById('modalPrev')?.addEventListener('click', e => {
+        e.stopImmediatePropagation();
+        prevCard();
+      }, true);
+      document.getElementById('modalShuffle')?.addEventListener('click', e => {
+        e.stopImmediatePropagation();
+        if (state.deck.length) {
+          state.deck = shuffle(state.deck);
+          state.idx = 0;
+          showCard(state.deck[0]);
+        }
+      }, true);
+
+      // ── Start game → random across all levels ──
+      btnShuffle?.addEventListener('click', e => {
+        e.stopImmediatePropagation();
+        fireSpark();
+        const labels = { en: 'Random deck', no: 'Tilfeldig kortstokk', ru: 'Случайная колода' };
+        setTimeout(() => startRound(null, labels[getLang()] || labels.en), 320);
+      }, true);
+
+      // ── Choose game → category overlay ──
+      function openCatOverlay() {
+        const overlay = document.getElementById('categoryOverlay');
+        if (!overlay) return;
+        applyLangAll();
+        overlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+      function closeCatOverlay() {
+        const overlay = document.getElementById('categoryOverlay');
+        if (!overlay) return;
+        overlay.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+      btnScroll?.addEventListener('click', e => {
+        e.stopImmediatePropagation();
+        fireSpark();
+        setTimeout(openCatOverlay, 240);
+      }, true);
+      document.getElementById('categoryClose')?.addEventListener('click', closeCatOverlay);
+      document.getElementById('categoryOverlay')?.addEventListener('click', e => {
+        if (e.target === e.currentTarget) closeCatOverlay();
+      });
+
+      // Wire each category tile → open a level-filtered round
+      document.querySelectorAll('#categoryOverlay .cat-tile').forEach(tile => {
+        tile.addEventListener('click', e => {
+          e.stopImmediatePropagation();
+          const cat = tile.dataset.cat;
+          const labelEl = tile.querySelector('.cat-tile__name');
+          const label = labelEl?.textContent || '';
+          closeCatOverlay();
+          fireSpark();
+          setTimeout(() => startRound(cat, label), 320);
+        }, true);
+      });
+
+      // ── Music player ──
+      (function wireMusic() {
+        const btn = document.getElementById('musicPlay');
+        const audio = document.getElementById('audio');
+        const vol = document.getElementById('volSlider');
+        const iconPlay = document.getElementById('iconPlay');
+        const iconPause = document.getElementById('iconPause');
+        const eq = document.getElementById('musicEq');
+        if (!btn || !audio) return;
+        // hydrate the lazy <source>
+        const src = audio.querySelector('source');
+        if (src && !src.src && src.dataset.src) {
+          src.src = src.dataset.src;
+          audio.load();
+        }
+        if (vol) {
+          audio.volume = parseFloat(vol.value) || 0.55;
+          vol.addEventListener('input', () => { audio.volume = parseFloat(vol.value); });
+        }
+        function setPlayingUI(playing) {
+          if (iconPlay)  iconPlay.classList.toggle('hidden', playing);
+          if (iconPause) iconPause.classList.toggle('hidden', !playing);
+          if (eq) eq.classList.toggle('playing', playing);
+          btn.setAttribute('aria-label', playing ? 'Pause music' : 'Play music');
+        }
+        btn.addEventListener('click', e => {
+          e.stopImmediatePropagation();
+          if (audio.paused) {
+            audio.play().then(() => setPlayingUI(true)).catch(() => {});
+          } else {
+            audio.pause();
+            setPlayingUI(false);
+          }
+        }, true);
+      })();
+
+      // ── Campfire crackle sound (real fireplace mp3) ──
+      (function wireFireSound() {
+        const fireBtn = document.getElementById('fireBtn');
+        const fireAudio = document.getElementById('fireAudio');
+        if (!fireBtn || !fireAudio) return;
+        // hydrate lazy <source>
+        const src = fireAudio.querySelector('source');
+        if (src && !src.src && src.dataset.src) {
+          src.src = src.dataset.src;
+          fireAudio.load();
+        }
+        fireAudio.volume = 0.45;
+        fireBtn.classList.add('muted');
+        fireBtn.addEventListener('click', e => {
+          e.stopImmediatePropagation();
+          if (fireAudio.paused) {
+            fireAudio.play().then(() => {
+              fireBtn.classList.remove('muted');
+              fireBtn.setAttribute('aria-pressed', 'true');
+            }).catch(() => {});
+          } else {
+            fireAudio.pause();
+            fireBtn.classList.add('muted');
+            fireBtn.setAttribute('aria-pressed', 'false');
+          }
+        }, true);
+      })();
+
+      // ── Rising embers from the campfire ──
+      (function emberLoop() {
+        const layer = document.getElementById('fireSparks2');
+        if (!layer) return;
+        function spawn() {
+          const e = document.createElement('span');
+          e.className = 'ember';
+          const drift = (Math.random() - 0.5) * 60;
+          e.style.setProperty('--rise-x', drift + 'px');
+          e.style.setProperty('--rise-dur', (2.4 + Math.random() * 2.0) + 's');
+          e.style.left = `calc(50% + ${(Math.random() - 0.5) * 36}px)`;
+          const size = 2 + Math.random() * 3;
+          e.style.width = size + 'px';
+          e.style.height = size + 'px';
+          layer.appendChild(e);
+          setTimeout(() => e.remove(), 5000);
+        }
+        setInterval(spawn, 220);
+      })();
+
+      // Apply translations on first load (after app.js may have failed)
+      applyLangAll();
+    })();
+  </script>
+</body>
+</html>
