@@ -18,6 +18,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <link rel="manifest" href="site.webmanifest" />
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -514,10 +515,10 @@
   <!-- Spark-to-card launcher -->
   <div class="spark-launcher" id="sparkLauncher" aria-hidden="true"></div>
 
-  <script src="app.js?v=17"></script>
+  <script src="app.js?v=18" defer></script>
   <script>
     // ── Spark animation + click-handler patch ──
-    (function () {
+    document.addEventListener('DOMContentLoaded', function () {
       const launcher   = document.getElementById('sparkLauncher');
       const campfire   = document.getElementById('campfire');
       const btnShuffle = document.getElementById('btnShuffle');
@@ -730,11 +731,16 @@
         const iconPause = document.getElementById('iconPause');
         const eq = document.getElementById('musicEq');
         if (!btn || !audio) return;
-        // hydrate the lazy <source>
-        const src = audio.querySelector('source');
-        if (src && !src.src && src.dataset.src) {
-          src.src = src.dataset.src;
-          audio.load();
+        // lazy load: hydrate source only on first play
+        let loaded = false;
+        function ensureSource() {
+          if (loaded) return;
+          const src = audio.querySelector('source');
+          if (src && !src.src && src.dataset.src) {
+            src.src = src.dataset.src;
+            audio.load();
+            loaded = true;
+          }
         }
         if (vol) {
           audio.volume = parseFloat(vol.value) || 0.55;
@@ -749,6 +755,7 @@
         btn.addEventListener('click', e => {
           e.stopImmediatePropagation();
           if (audio.paused) {
+            ensureSource();
             audio.play().then(() => setPlayingUI(true)).catch(() => {});
           } else {
             audio.pause();
@@ -762,17 +769,23 @@
         const fireBtn = document.getElementById('fireBtn');
         const fireAudio = document.getElementById('fireAudio');
         if (!fireBtn || !fireAudio) return;
-        // hydrate lazy <source>
-        const src = fireAudio.querySelector('source');
-        if (src && !src.src && src.dataset.src) {
-          src.src = src.dataset.src;
-          fireAudio.load();
+        // lazy load: hydrate source only on first play
+        let loaded = false;
+        function ensureSource() {
+          if (loaded) return;
+          const src = fireAudio.querySelector('source');
+          if (src && !src.src && src.dataset.src) {
+            src.src = src.dataset.src;
+            fireAudio.load();
+            loaded = true;
+          }
         }
         fireAudio.volume = 0.45;
         fireBtn.classList.add('muted');
         fireBtn.addEventListener('click', e => {
           e.stopImmediatePropagation();
           if (fireAudio.paused) {
+            ensureSource();
             fireAudio.play().then(() => {
               fireBtn.classList.remove('muted');
               fireBtn.setAttribute('aria-pressed', 'true');
@@ -807,7 +820,7 @@
 
       // Apply translations on first load (after app.js may have failed)
       applyLangAll();
-    })();
+    });
   </script>
 </body>
 </html>
