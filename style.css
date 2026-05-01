@@ -39,17 +39,12 @@ html { scroll-behavior: smooth; }
 html.mobile .stars-canvas,
 html.mobile .ember-canvas { display: none !important; }
 
-/* Disable heavy effects on mobile for performance */
-html.mobile .fire-glow,
-html.mobile .fire-ground,
-html.mobile .smoke,
+/* Disable heavy effects on mobile for performance — but keep campfire visible */
 html.mobile .moon-halo,
 html.mobile .aurora { display: none !important; }
-html.mobile .flame { animation: none !important; }
 html.mobile .moon-body { animation: none !important; }
-html.mobile [class*="fire-"] { filter: none !important; }
-html.mobile .session-counter,
-html.mobile .fire-btn { backdrop-filter: none !important; }
+html.mobile .session-counter { backdrop-filter: none !important; }
+/* Campfire animation kept for mobile but simplified via JS */
 
 body {
   background: var(--sky-0);
@@ -1295,6 +1290,12 @@ body.day .stars-canvas { opacity: 0.3; }
   .cards-masonry{columns:1}
   .moon-wrap{right:3%;top:10%}
   .moon-body{width:62px;height:62px}
+  /* Move music player to left on mobile to avoid campfire overlap */
+  .music-player{
+    left: 20px !important;
+    right: auto !important;
+    transform: none !important;
+  }
   .music-vol{display:none}
   .fab{bottom:86px;right:18px}
   body.hero-compact .fab{
@@ -1319,6 +1320,19 @@ body.day .stars-canvas { opacity: 0.3; }
 @media(min-width:641px){.swipe-hint{display:none}}
 @media(max-width:380px){
   .hero__proof{flex-direction:column}
+}
+
+/* Ensure card modal buttons are visible on mobile */
+@media(max-width:640px){
+  .card-modal__actions {
+    display: flex !important;
+    gap: 6px;
+  }
+  .card-modal .icon-btn {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 14px !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
