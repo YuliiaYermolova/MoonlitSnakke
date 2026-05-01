@@ -1093,13 +1093,26 @@ function syncResumeButton() {
     
     // Verify button is actually visible
     setTimeout(() => {
+      const computedStyle = getComputedStyle(btn);
       console.log('[Snakke] Button visibility check:', {
         display: btn.style.display,
+        computedDisplay: computedStyle.display,
         visibility: btn.style.visibility,
+        computedVisibility: computedStyle.visibility,
         hidden: btn.hasAttribute('hidden'),
         offsetWidth: btn.offsetWidth,
-        offsetHeight: btn.offsetHeight
+        offsetHeight: btn.offsetHeight,
+        opacity: computedStyle.opacity,
+        zIndex: computedStyle.zIndex
       });
+      
+      // Force button to be visible
+      btn.style.display = 'inline-flex !important';
+      btn.style.visibility = 'visible !important';
+      btn.style.opacity = '1 !important';
+      btn.style.pointerEvents = 'auto !important';
+      
+      console.log('[Snakke] Forced visibility styles applied');
     }, 50);
   } else {
     console.log('[Snakke] Hiding button - hasRound is false');
