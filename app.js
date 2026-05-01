@@ -1081,15 +1081,20 @@ function resumeLastRound() {
     return;
   }
 
-  const safeIndex = Math.min(lastRound.idx || 0, cards.length - 1);
+  // Support both currentIndex and idx fields
+  const rawIdx = lastRound.currentIndex !== undefined ? lastRound.currentIndex : (lastRound.idx || 0);
+  const safeIndex = Math.max(0, Math.min(rawIdx, cards.length - 1));
+  
   openDeckDirect(cards, cards[safeIndex].id, {
     ...lastRound.roundMeta,
     label: lastRound.roundMeta?.label || t(ROUND_TITLES.resume),
   });
+
   track('round_resumed', {
     source: lastRound.roundMeta?.source || 'resume',
     partnerMode: !!lastRound.roundMeta?.partnerMode,
     size: cards.length,
+    index: safeIndex
   });
 }
 
