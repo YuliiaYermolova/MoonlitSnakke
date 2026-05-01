@@ -1488,8 +1488,6 @@ function syncFavBtn() {
   btn.setAttribute('aria-label', is ? t(LABELS.unsave) : t(LABELS.save));
 }
 
-document.getElementById('modalFav').addEventListener('click', () => { if (deck.length) toggleSave(deck[idx].id); });
-
 // ── CUSTOM CARDS ──
 function deleteCustom(id) {
   custom = custom.filter(c => c.id !== id);
@@ -1724,16 +1722,48 @@ function closeModal() {
   history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
 }
 
-document.getElementById('modalNext').addEventListener('click', () => animateTo((idx+1) % deck.length));
-document.getElementById('modalPrev').addEventListener('click', () => animateTo((idx-1+deck.length) % deck.length));
-document.getElementById('modalClose').addEventListener('click', closeModal);
-modalOverlay.addEventListener('click', e => { if (e.target===e.currentTarget) closeModal(); });
+function setupModalListeners() {
+  document.getElementById('modalNext').addEventListener('click', () => animateTo((idx+1) % deck.length));
+  document.getElementById('modalPrev').addEventListener('click', () => animateTo((idx-1+deck.length) % deck.length));
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  modalOverlay.addEventListener('click', e => { if (e.target===e.currentTarget) closeModal(); });
 
-document.getElementById('modalShuffle').addEventListener('click', function() {
-  this.classList.add('spin'); setTimeout(() => this.classList.remove('spin'), 440);
-  animateTo((idx + 1 + Math.floor(Math.random()*(deck.length-1))) % deck.length);
-  track('deck_shuffled', { source: roundMeta.source });
-});
+  document.getElementById('modalShuffle').addEventListener('click', function() {
+    this.classList.add('spin'); setTimeout(() => this.classList.remove('spin'), 440);
+    animateTo((idx + 1 + Math.floor(Math.random()*(deck.length-1))) % deck.length);
+    track('deck_shuffled', { source: roundMeta.source });
+  });
+
+  // Card action buttons
+  document.getElementById('modalFav').addEventListener('click', () => { if (deck.length) toggleSave(deck[idx].id); });
+
+  document.getElementById('modalShare').addEventListener('click', async () => {
+    if (!deck.length) return;
+    const url = buildShareUrl();
+    const shareText = currentQuestionText();
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'Snakke', text: shareText, url });
+        showToast(t(TOAST.shared));
+      } else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        showToast(t(TOAST.copied));
+      } else {
+        throw new Error('share unavailable');
+      }
+      track('card_shared', { id: deck[idx].id, source: roundMeta.source });
+    } catch {
+      showToast(t(TOAST.shareError));
+    }
+  });
+
+  document.getElementById('modalExport')?.addEventListener('click', async () => {
+    if (!deck.length) return;
+    const card = deck[idx];
+    const text = card[lang] || card.ru || card.en;
+    exportCard(card, text);
+  });
+}
 
 // Note: btnShuffle handler moved to inline script in index.html to support spark animation
 // document.getElementById('btnShuffle').addEventListener('click', () => {
@@ -1857,30 +1887,9 @@ document.getElementById('btnPartner').addEventListener('click', () => {
   openDeck(cards, cards[0].id, { source: 'partner', label: t(ROUND_TITLES.partner), partnerMode: true });
 });
 document.getElementById('btnResume').addEventListener('click', resumeLastRound);
-document.getElementById('modalShare').addEventListener('click', async () => {
-  if (!deck.length) return;
-  const url = buildShareUrl();
-  const shareText = currentQuestionText();
-  try {
-    if (navigator.share) {
-      await navigator.share({ title: 'Snakke', text: shareText, url });
-      showToast(t(TOAST.shared));
-    } else if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(url);
-      showToast(t(TOAST.copied));
-    } else {
-      throw new Error('share unavailable');
-    }
-    track('card_shared', { id: deck[idx].id, source: roundMeta.source });
-  } catch {
-    showToast(t(TOAST.shareError));
-  }
-});
 
-document.getElementById('modalExport')?.addEventListener('click', async () => {
-  if (!deck.length) return;
-  const card = deck[idx];
-  const text = card[lang] || card.ru || card.en;
+// Export card function (called from setupModalListeners)
+async function exportCard(card, text) {
   const category = (TAG[card.category] || TAG.custom)[lang];
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
@@ -1947,7 +1956,7 @@ document.getElementById('modalExport')?.addEventListener('click', async () => {
   } catch {
     showToast({ en: 'Export failed', no: 'Eksport feilet', ru: 'Ошибка экспорта' }[lang]);
   }
-});
+}
 
 // ── SWIPE ──
 (function () {
@@ -2070,6 +2079,7 @@ function init() {
   livePreview();
   syncMobileChrome();
   openSharedCardFromHash();
+  setupModalListeners(); // Setup card modal button handlers
   window.addEventListener('scroll', syncMobileChrome, { passive: true });
   window.addEventListener('resize', syncMobileChrome);
 }
