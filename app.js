@@ -1066,53 +1066,48 @@ function syncResumeButton() {
 
 function resumeLastRound() {
   const lastRound = readLastRound();
-  if (!lastRound) {
-    showToast(t(TOAST.resumeMissing));
-    return;
-  }
+  if (!lastRound) return;
 
   const cards = resolveStoredDeck(lastRound.cardIds);
   if (!cards.length) {
     localStorage.removeItem(STORAGE.lastRound);
     syncResumeButton();
-    showToast(t(TOAST.resumeMissing));
     return;
   }
 
-  // Close ALL open overlays
-  document.querySelectorAll('.overlay.open').forEach(ov => ov.classList.remove('open'));
-  document.body.style.overflow = ''; 
+  // 1. Force close ALL overlays first
+  document.querySelectorAll('.overlay').forEach(ov => {
+    ov.classList.remove('open');
+  });
 
-  // Support both currentIndex and idx fields
+  // 2. Set global state directly
   const rawIdx = lastRound.currentIndex !== undefined ? lastRound.currentIndex : (lastRound.idx || 0);
-  const safeIndex = Math.max(0, Math.min(rawIdx, cards.length - 1));
-  
-  // Set global state
-  idx = safeIndex;
+  idx = Math.max(0, Math.min(rawIdx, cards.length - 1));
   deck = cards;
   roundMeta = lastRound.roundMeta || { source: 'resume', label: t(ROUND_TITLES.resume) };
 
-  // Small delay to let the UI settle
-  setTimeout(() => {
-    // Force find elements if global ones are missing
-    const mOverlay = document.getElementById('modalOverlay');
-    const mPanel = mOverlay ? mOverlay.querySelector('.card-modal') : null;
+  // 3. Force update modal UI before showing
+  const qEl = document.getElementById('modalQuestion');
+  if (qEl) qEl.textContent = deck[idx][lang] || deck[idx].ru || deck[idx].en;
+  
+  updateModalMeta();
+  
+  // 4. Show modal overlay directly
+  const mOverlay = document.getElementById('modalOverlay');
+  if (mOverlay) {
+    mOverlay.classList.add('open');
+    syncBodyLock();
     
-    if (mOverlay && mPanel) {
-      openDeckDirect(cards, cards[safeIndex].id, roundMeta);
-    } else {
-      console.error('[Snakke] Modal elements not found!');
-      // Fallback: try standard openDeck which might be safer
-      openDeck(cards, cards[safeIndex].id, roundMeta);
-    }
-
+    // Add to history and update UI
+    addToHistory(deck[idx].id);
+    bumpSession();
+    
     track('round_resumed', {
       source: roundMeta.source,
-      partnerMode: !!roundMeta.partnerMode,
-      size: cards.length,
-      index: safeIndex
+      size: deck.length,
+      index: idx
     });
-  }, 100);
+  }
 }
 
 // ── RULES ──
