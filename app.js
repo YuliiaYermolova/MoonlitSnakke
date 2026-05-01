@@ -1037,9 +1037,14 @@ function syncResumeButton() {
   const btn = document.getElementById('btnResume');
   const lastRound = readLastRound();
   if (!btn) return;
-  const disabled = !lastRound || !Array.isArray(lastRound.cardIds) || !lastRound.cardIds.length;
-  btn.disabled = disabled;
-  btn.setAttribute('aria-disabled', String(disabled));
+  const hasRound = lastRound && Array.isArray(lastRound.cardIds) && lastRound.cardIds.length;
+  btn.hidden = !hasRound;
+  if (hasRound) {
+    const total    = lastRound.cardIds.length;
+    const progress = Math.min((lastRound.idx || 0) + 1, total);
+    const badge    = document.getElementById('resumeChipCount');
+    if (badge) badge.textContent = `${progress}/${total}`;
+  }
 }
 
 function resumeLastRound() {
@@ -1058,7 +1063,7 @@ function resumeLastRound() {
   }
 
   const safeIndex = Math.min(lastRound.idx || 0, cards.length - 1);
-  openDeck(cards, cards[safeIndex].id, {
+  openDeckDirect(cards, cards[safeIndex].id, {
     ...lastRound.roundMeta,
     label: lastRound.roundMeta?.label || t(ROUND_TITLES.resume),
   });
@@ -1802,40 +1807,31 @@ function closeModal() {
 }
 
 function setupModalListeners() {
-  console.log('[DEBUG] Setting up modal listeners');
-
-  const modalNext = document.getElementById('modalNext');
-  const modalPrev = document.getElementById('modalPrev');
-  const modalClose = document.getElementById('modalClose');
+  const modalNext    = document.getElementById('modalNext');
+  const modalPrev    = document.getElementById('modalPrev');
+  const modalClose   = document.getElementById('modalClose');
   const modalShuffle = document.getElementById('modalShuffle');
-  const modalFav = document.getElementById('modalFav');
-  const modalShare = document.getElementById('modalShare');
-  const modalExport = document.getElementById('modalExport');
+  const modalFav     = document.getElementById('modalFav');
+  const modalShare   = document.getElementById('modalShare');
+  const modalExport  = document.getElementById('modalExport');
 
-  console.log('[DEBUG] Buttons found:', { modalNext, modalPrev, modalClose, modalShuffle, modalFav, modalShare, modalExport });
-
-  if (modalNext) modalNext.addEventListener('click', () => animateTo((idx+1) % deck.length));
-  if (modalPrev) modalPrev.addEventListener('click', () => animateTo((idx-1+deck.length) % deck.length));
-  if (modalClose) modalClose.addEventListener('click', () => { console.log('[DEBUG] Close clicked'); closeModal(); });
-  if (modalOverlay) modalOverlay.addEventListener('click', e => { if (e.target===e.currentTarget) closeModal(); });
+  if (modalNext)    modalNext.addEventListener('click', () => animateTo((idx + 1) % deck.length));
+  if (modalPrev)    modalPrev.addEventListener('click', () => animateTo((idx - 1 + deck.length) % deck.length));
+  if (modalClose)   modalClose.addEventListener('click', closeModal);
+  if (modalOverlay) modalOverlay.addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
 
   if (modalShuffle) modalShuffle.addEventListener('click', function() {
     this.classList.add('spin'); setTimeout(() => this.classList.remove('spin'), 440);
-    animateTo((idx + 1 + Math.floor(Math.random()*(deck.length-1))) % deck.length);
+    animateTo((idx + 1 + Math.floor(Math.random() * (deck.length - 1))) % deck.length);
     track('deck_shuffled', { source: roundMeta.source });
   });
 
-  // Card action buttons
   if (modalFav) modalFav.addEventListener('click', (e) => {
-    console.log('[DEBUG] Fav clicked, deck.length:', deck.length, 'idx:', idx, 'card:', deck[idx]);
     e.stopPropagation();
-    if (deck.length && deck[idx]) {
-      toggleSave(deck[idx].id);
-    }
+    if (deck.length && deck[idx]) toggleSave(deck[idx].id);
   });
 
   if (modalShare) modalShare.addEventListener('click', async (e) => {
-    console.log('[DEBUG] Share clicked');
     e.stopPropagation();
     if (!deck.length || !deck[idx]) return;
     const url = buildShareUrl();
@@ -1852,21 +1848,15 @@ function setupModalListeners() {
       }
       track('card_shared', { id: deck[idx].id, source: roundMeta.source });
     } catch(err) {
-      console.log('[DEBUG] Share error:', err);
       showToast(t(TOAST.shareError));
     }
   });
 
   if (modalExport) modalExport.addEventListener('click', async (e) => {
-    console.log('[DEBUG] Export clicked');
     e.stopPropagation();
     if (!deck.length || !deck[idx]) return;
-    const card = deck[idx];
-    const text = card[lang] || card.ru || card.en;
-    await exportCard(card, text);
+    await exportCard(deck[idx], deck[idx][lang] || deck[idx].ru || deck[idx].en);
   });
-
-  console.log('[DEBUG] Modal listeners setup complete');
 }
 
 // Note: btnShuffle handler moved to inline script in index.html to support spark animation
@@ -1986,10 +1976,6 @@ document.querySelectorAll('.home-cat[data-cat]').forEach(btn => {
   });
 });
 
-document.getElementById('btnPartner').addEventListener('click', () => {
-  const cards = buildScenarioDeck(PARTNER_RECIPE);
-  openDeck(cards, cards[0].id, { source: 'partner', label: t(ROUND_TITLES.partner), partnerMode: true });
-});
 document.getElementById('btnResume').addEventListener('click', resumeLastRound);
 
 // Export card function (called from setupModalListeners)
@@ -2220,7 +2206,7 @@ const tapCardPlaceholder = tapOverlay?.querySelector('.tap-card-placeholder');
 // Stars for tap screen
 (function initTapStars() {
   const canvas = document.getElementById('tapStarsCanvas');
-  if (!canvas || REDUCE_MOTION) return;
+  if (!canvas || REDUCE_MOTION || IS_MOBILE) return;
   const ctx = canvas.getContext('2d');
   let W, H, stars = [], shooters = [];
 
@@ -2306,6 +2292,9 @@ function openTapScreen(cards, startId, meta = {}) {
   if (tapText) {
     tapText.textContent = tapText.dataset[lang] || tapText.dataset.en;
   }
+
+  const badge = document.getElementById('tapPartnerBadge');
+  if (badge) badge.hidden = !meta.partnerMode;
 
   tapCardPlaceholder?.classList.remove('drawing');
   tapText?.classList.remove('fading');

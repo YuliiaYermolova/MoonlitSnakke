@@ -23,8 +23,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preload" href="https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuGKYAZ9hjp-Ek-_EeA.woff2" as="font" type="font/woff2" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="preload" href="style.css?v=11" as="style" />
-  <link rel="stylesheet" href="style.css?v=11" />
+  <link rel="preload" href="style.css?v=12" as="style" />
+  <link rel="stylesheet" href="style.css?v=12" />
 </head>
 <body>
   <script>
@@ -173,13 +173,10 @@
         <button class="btn-ghost" id="btnScroll" type="button" data-en="Choose game" data-no="Velg spill" data-ru="Выбрать игру">Choose game</button>
       </div>
       <div class="hero__utility">
-        <button class="hero-chip" id="btnPartner" type="button">
-          <span class="hero-chip__glyph">♡</span>
-          <span data-en="Play with partner" data-no="Spill sammen" data-ru="Играть вдвоём">Play with partner</span>
-        </button>
-        <button class="hero-chip" id="btnResume" type="button">
+        <button class="hero-chip" id="btnResume" type="button" hidden>
           <span class="hero-chip__glyph">↺</span>
-          <span data-en="Continue last round" data-no="Fortsett runden" data-ru="Продолжить раунд">Continue last round</span>
+          <span data-en="Continue" data-no="Fortsett" data-ru="Продолжить">Continue</span>
+          <span class="hero-chip__count" id="resumeChipCount">1/12</span>
         </button>
         <button class="hero-chip" id="btnSaved" type="button">
           <span class="hero-chip__glyph">♥</span>
@@ -423,6 +420,10 @@
         </div>
       </div>
 
+      <div class="tap-partner-badge" id="tapPartnerBadge" hidden>
+        <span>♡</span>
+        <span data-en="Partner mode" data-no="Partnermodus" data-ru="Режим для двоих">Partner mode</span>
+      </div>
       <p class="tap-text" data-en="Tap to draw a card" data-no="Trykk for å trekke et kort" data-ru="Нажмите, чтобы вытянуть карту">
         Tap to draw a card
       </p>
@@ -541,7 +542,7 @@
   <!-- Spark-to-card launcher -->
   <div class="spark-launcher" id="sparkLauncher" aria-hidden="true"></div>
 
-  <script src="app.js?v=25" defer></script>
+  <script src="app.js?v=28" defer></script>
   <script>
     // ── Spark animation + click-handler patch ──
     document.addEventListener('DOMContentLoaded', function () {
@@ -687,20 +688,21 @@
         if (e.target === e.currentTarget) closeCardModal();
       });
       document.getElementById('modalNext')?.addEventListener('click', e => {
+        if (!state.deck.length) return;
         e.stopImmediatePropagation();
         nextCard();
       }, true);
       document.getElementById('modalPrev')?.addEventListener('click', e => {
+        if (!state.deck.length) return;
         e.stopImmediatePropagation();
         prevCard();
       }, true);
       document.getElementById('modalShuffle')?.addEventListener('click', e => {
+        if (!state.deck.length) return;
         e.stopImmediatePropagation();
-        if (state.deck.length) {
-          state.deck = shuffle(state.deck);
-          state.idx = 0;
-          showCard(state.deck[0]);
-        }
+        state.deck = shuffle(state.deck);
+        state.idx = 0;
+        showCard(state.deck[0]);
       }, true);
 
       // ── Action buttons (Fav, Export) ──
@@ -732,8 +734,8 @@
       }
 
       document.getElementById('modalFav')?.addEventListener('click', e => {
-        e.stopImmediatePropagation();
         if (!state.deck.length) return;
+        e.stopImmediatePropagation();
         const card = state.deck[state.idx];
         const nowSaved = toggleSaveCard(card.id);
         updateFavButton();
@@ -752,8 +754,8 @@
       };
 
       document.getElementById('modalExport')?.addEventListener('click', async (e) => {
-        e.stopImmediatePropagation();
         if (!state.deck.length) return;
+        e.stopImmediatePropagation();
         const card = state.deck[state.idx];
         const text = card[getLang()] || card.en || card.ru || '';
 
