@@ -1066,10 +1066,32 @@ function syncResumeButton() {
   });
   
   if (hasRound) {
-    btn.removeAttribute('hidden');
-    btn.style.display = 'inline-flex';
-    btn.style.visibility = 'visible';
-    btn.style.pointerEvents = 'auto';
+    // Force button to be visible in its natural position
+    btn.style.cssText = `
+      display: inline-flex !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+      position: relative !important;
+      z-index: 501 !important;
+      background-color: rgba(8,18,36,0.45) !important;
+      color: var(--w) !important;
+      border: 1px solid var(--border) !important;
+      padding: 9px 12px !important;
+      font-size: 12px !important;
+      transform: none !important;
+      transition: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    `;
+    
+    // Re-add event listener to ensure it works
+    btn.addEventListener('click', (e) => {
+      console.log('[Snakke] Continue clicked from syncResumeButton');
+      e.preventDefault();
+      e.stopPropagation();
+      resumeLastRound();
+    });
     
     const total = lastRound.cardIds.length;
     const progress = Math.min((lastRound.idx || 0) + 1, total);
