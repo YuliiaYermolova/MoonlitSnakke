@@ -1019,15 +1019,25 @@ function bumpSession() {
 }
 
 function persistLastRound() {
-  if (!deck.length) return;
+  if (!deck.length) {
+    console.log('[Snakke] persistLastRound: no deck, skipping');
+    return;
+  }
   const data = {
     cardIds: deck.map(card => card.id),
     idx,
     roundMeta,
     savedAt: new Date().toISOString(),
   };
-  console.log('[Snakke] persistLastRound:', { deckLength: deck.length, idx, data });
+  console.log('[Snakke] persistLastRound:', { 
+    deckLength: deck.length, 
+    idx, 
+    cardIds: data.cardIds,
+    data 
+  });
   writeJSON(STORAGE.lastRound, data);
+  console.log('[Snakke] persistLastRound: wrote to localStorage, key:', STORAGE.lastRound);
+  console.log('[Snakke] localStorage after write:', localStorage.getItem(STORAGE.lastRound));
   syncResumeButton();
 }
 
@@ -1038,31 +1048,44 @@ function readLastRound() {
 function syncResumeButton() {
   const btn = document.getElementById('btnResume');
   const lastRound = readLastRound();
+  console.log('[Snakke] syncResumeButton called, btn:', !!btn, 'lastRound:', lastRound);
+  
   if (!btn) {
-    console.log('[Snakke] btnResume not found in DOM');
+    console.error('[Snakke] btnResume not found in DOM');
     return;
   }
+  
   const hasRound = lastRound && Array.isArray(lastRound.cardIds) && lastRound.cardIds.length > 0;
   console.log('[Snakke] syncResumeButton:', { 
     hasRound, 
     lastRound,
     cardIds: lastRound?.cardIds,
     idx: lastRound?.idx,
-    storageKey: STORAGE.lastRound
+    storageKey: STORAGE.lastRound,
+    localStorageRaw: localStorage.getItem(STORAGE.lastRound)
   });
+  
   if (hasRound) {
     btn.removeAttribute('hidden');
     btn.style.display = 'inline-flex';
+    btn.style.visibility = 'visible';
+    btn.style.pointerEvents = 'auto';
+    
     const total    = lastRound.cardIds.length;
     const progress = Math.min((lastRound.idx || 0) + 1, total);
     const badge    = document.getElementById('resumeChipCount');
+    
     if (badge) {
       badge.textContent = `${progress}/${total}`;
       console.log('[Snakke] Updated badge:', { progress, total });
+    } else {
+      console.error('[Snakke] resumeChipCount badge not found');
     }
   } else {
     btn.setAttribute('hidden', '');
     btn.style.display = 'none';
+    btn.style.visibility = 'hidden';
+    btn.style.pointerEvents = 'none';
   }
 }
 
@@ -2179,6 +2202,7 @@ syncFireButton = function () {
 
 // ── INIT ──
 function init() {
+  console.log('[Snakke] init() called');
   document.getElementById('heroCardCount').textContent = CARDS.length;
   renderScenarios();
   renderNotes();
@@ -2193,20 +2217,28 @@ function init() {
 
   // Continue button handler
   const btnResume = document.getElementById('btnResume');
+  console.log('[Snakke] init: btnResume found:', !!btnResume);
   if (btnResume) {
-    btnResume.addEventListener('click', () => {
-      console.log('[Snakke] Continue clicked');
+    btnResume.addEventListener('click', (e) => {
+      console.log('[Snakke] Continue clicked, event:', e);
+      e.preventDefault();
+      e.stopPropagation();
       resumeLastRound();
     });
+    console.log('[Snakke] init: event listener added to btnResume');
   } else {
-    console.error('[Snakke] btnResume not found');
+    console.error('[Snakke] init: btnResume not found');
   }
 
   window.addEventListener('scroll', syncMobileChrome, { passive: true });
   window.addEventListener('resize', syncMobileChrome);
 
   // Ensure resume button is synced after all init
-  setTimeout(syncResumeButton, 0);
+  console.log('[Snakke] init: calling syncResumeButton after timeout');
+  setTimeout(() => {
+    console.log('[Snakke] init: timeout callback, calling syncResumeButton');
+    syncResumeButton();
+  }, 100);
 }
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);
