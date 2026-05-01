@@ -1068,10 +1068,25 @@ function syncResumeButton() {
   
   if (hasRound) {
     console.log('[Snakke] Showing button - hasRound is true');
+    
+    // Force button to be visible immediately with !important
+    btn.style.cssText = `
+      display: inline-flex !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+      position: fixed !important;
+      z-index: 99999 !important;
+      top: 20px !important;
+      left: 20px !important;
+      background-color: red !important;
+      color: white !important;
+      border: 2px solid white !important;
+      padding: 10px 15px !important;
+      font-size: 16px !important;
+    `;
+    
     btn.removeAttribute('hidden');
-    btn.style.display = 'inline-flex';
-    btn.style.visibility = 'visible';
-    btn.style.pointerEvents = 'auto';
     
     const total    = lastRound.cardIds.length;
     const progress = Math.min((lastRound.idx || 0) + 1, total);
@@ -1091,56 +1106,23 @@ function syncResumeButton() {
       console.error('[Snakke] resumeChipCount badge not found');
     }
     
-    // Verify button is actually visible
-    setTimeout(() => {
-      const computedStyle = getComputedStyle(btn);
+    // Monitor button visibility over time
+    let checkCount = 0;
+    const interval = setInterval(() => {
+      checkCount++;
       const rect = btn.getBoundingClientRect();
-      console.log('[Snakke] Button visibility check:', {
-        display: btn.style.display,
-        computedDisplay: computedStyle.display,
-        visibility: btn.style.visibility,
-        computedVisibility: computedStyle.visibility,
-        hidden: btn.hasAttribute('hidden'),
-        offsetWidth: btn.offsetWidth,
-        offsetHeight: btn.offsetHeight,
-        opacity: computedStyle.opacity,
-        zIndex: computedStyle.zIndex,
-        position: computedStyle.position,
-        top: computedStyle.top,
-        left: computedStyle.left,
-        rect: {
-          top: rect.top,
-          left: rect.left,
-          width: rect.width,
-          height: rect.height,
-          visible: rect.width > 0 && rect.height > 0
-        }
+      console.log(`[Snakke] Button check ${checkCount}:`, {
+        visible: rect.width > 0 && rect.height > 0,
+        display: getComputedStyle(btn).display,
+        cssText: btn.style.cssText.substring(0, 100) + '...'
       });
       
-      // Check if button is in viewport
-      const isInViewport = rect.top >= 0 && rect.left >= 0 && 
-                          rect.bottom <= window.innerHeight && 
-                          rect.right <= window.innerWidth;
-      
-      console.log('[Snakke] Button in viewport:', isInViewport);
-      
-      // Force button to be visible and positioned at top of page
-      btn.style.display = 'inline-flex !important';
-      btn.style.visibility = 'visible !important';
-      btn.style.opacity = '1 !important';
-      btn.style.pointerEvents = 'auto !important';
-      btn.style.position = 'fixed !important';
-      btn.style.zIndex = '99999 !important';
-      btn.style.top = '20px !important';
-      btn.style.left = '20px !important';
-      btn.style.backgroundColor = 'red !important';
-      btn.style.color = 'white !important';
-      btn.style.border = '2px solid white !important';
-      btn.style.padding = '10px 15px !important';
-      btn.style.fontSize = '16px !important';
-      
-      console.log('[Snakke] Forced button to fixed position at top-left');
-    }, 50);
+      if (checkCount >= 5) {
+        clearInterval(interval);
+        console.log('[Snakke] Stopped monitoring button');
+      }
+    }, 1000);
+    
   } else {
     console.log('[Snakke] Hiding button - hasRound is false');
     btn.setAttribute('hidden', '');
