@@ -1058,11 +1058,9 @@ function syncResumeButton() {
     const progress = Math.min(current + 1, total);
     badge.textContent = `${progress}/${total}`;
     badge.removeAttribute('hidden');
-    btn.classList.add('has-session');
   } else {
     badge.textContent = '0/0';
     badge.setAttribute('hidden', '');
-    btn.classList.remove('has-session');
   }
 }
 
@@ -1081,7 +1079,7 @@ function resumeLastRound() {
     return;
   }
 
-  // Close ALL open overlays first to prevent UI conflicts
+  // Close ALL open overlays
   document.querySelectorAll('.overlay.open').forEach(ov => ov.classList.remove('open'));
   document.body.style.overflow = ''; 
 
@@ -1089,22 +1087,32 @@ function resumeLastRound() {
   const rawIdx = lastRound.currentIndex !== undefined ? lastRound.currentIndex : (lastRound.idx || 0);
   const safeIndex = Math.max(0, Math.min(rawIdx, cards.length - 1));
   
-  // Important: set global idx BEFORE calling openDeckDirect to prevent persistLastRound from overwriting with 0
+  // Set global state
   idx = safeIndex;
+  deck = cards;
+  roundMeta = lastRound.roundMeta || { source: 'resume', label: t(ROUND_TITLES.resume) };
 
+  // Small delay to let the UI settle
   setTimeout(() => {
-    openDeckDirect(cards, cards[safeIndex].id, {
-      ...lastRound.roundMeta,
-      label: lastRound.roundMeta?.label || t(ROUND_TITLES.resume),
-    });
+    // Force find elements if global ones are missing
+    const mOverlay = document.getElementById('modalOverlay');
+    const mPanel = mOverlay ? mOverlay.querySelector('.card-modal') : null;
+    
+    if (mOverlay && mPanel) {
+      openDeckDirect(cards, cards[safeIndex].id, roundMeta);
+    } else {
+      console.error('[Snakke] Modal elements not found!');
+      // Fallback: try standard openDeck which might be safer
+      openDeck(cards, cards[safeIndex].id, roundMeta);
+    }
 
     track('round_resumed', {
-      source: lastRound.roundMeta?.source || 'resume',
-      partnerMode: !!lastRound.roundMeta?.partnerMode,
+      source: roundMeta.source,
+      partnerMode: !!roundMeta.partnerMode,
       size: cards.length,
       index: safeIndex
     });
-  }, 50);
+  }, 100);
 }
 
 // ── RULES ──
