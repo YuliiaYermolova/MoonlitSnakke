@@ -36,6 +36,8 @@
 }
 
 html { scroll-behavior: smooth; }
+html.mobile .stars-canvas,
+html.mobile .ember-canvas { display: none !important; }
 
 body {
   background: var(--sky-0);
