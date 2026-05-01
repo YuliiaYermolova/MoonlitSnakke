@@ -1697,16 +1697,13 @@ function renderResumeGrid() {
   
   empty?.classList.remove('visible');
   
-  // Use the stored index and ensure it's valid
   const current = lastRound.currentIndex !== undefined ? lastRound.currentIndex : (lastRound.idx || 0);
   const total = lastRound.cardIds.length;
   const progress = `${current + 1}/${total}`;
-  
-  // Use label from metadata if available
   const roundTitle = lastRound.scenarioTitle || lastRound.roundMeta?.label || t(ROUND_TITLES.resume);
   
   const card = document.createElement('div');
-  card.className = 'card-item';
+  card.className = 'card-item resume-card-action'; // Add specific class
   card.style.cursor = 'pointer';
   card.innerHTML = `
     <div class="card-item__top">
@@ -1721,14 +1718,11 @@ function renderResumeGrid() {
     </div>
   `;
   
-  card.addEventListener('click', (e) => {
+  card.onclick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    closeResumeOverlay();
-    setTimeout(() => {
-      resumeLastRound();
-    }, 100);
-  });
+    resumeLastRound();
+  };
   
   grid.appendChild(card);
 }
