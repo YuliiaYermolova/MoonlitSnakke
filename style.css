@@ -1484,6 +1484,7 @@ body.day .stars-canvas { opacity: 0.3; }
 .hero__contexts { z-index: 13 !important; }
 .hero__actions { z-index: 13 !important; }
 .hero__utility { z-index: 13 !important; }
+.hero__utility #btnResume { position: relative; z-index: 100 !important; pointer-events: auto !important; }
 .fire-btn { z-index: 26 !important; }
 .fab { z-index: 401 !important; }
 .music-player { z-index: 601 !important; }
