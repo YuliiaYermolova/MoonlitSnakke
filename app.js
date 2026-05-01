@@ -1106,16 +1106,47 @@ function syncResumeButton() {
       console.error('[Snakke] resumeChipCount badge not found');
     }
     
-    // Monitor button visibility over time
+    // Monitor button visibility over time and check for mobile class
     let checkCount = 0;
     const interval = setInterval(() => {
       checkCount++;
       const rect = btn.getBoundingClientRect();
+      const computedStyle = getComputedStyle(btn);
+      const htmlElement = document.documentElement;
+      
       console.log(`[Snakke] Button check ${checkCount}:`, {
         visible: rect.width > 0 && rect.height > 0,
-        display: getComputedStyle(btn).display,
+        display: computedStyle.display,
+        computedDisplay: computedStyle.display,
+        visibility: computedStyle.visibility,
+        opacity: computedStyle.opacity,
+        position: computedStyle.position,
+        zIndex: computedStyle.zIndex,
+        isMobile: htmlElement.classList.contains('mobile'),
+        windowWidth: window.innerWidth,
         cssText: btn.style.cssText.substring(0, 100) + '...'
       });
+      
+      // Force styles again if they're being overridden
+      if (checkCount === 2 && rect.width === 0) {
+        console.log('[Snakke] Re-applying forced styles');
+        btn.style.cssText = `
+          display: inline-flex !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          pointer-events: auto !important;
+          position: fixed !important;
+          z-index: 99999 !important;
+          top: 20px !important;
+          left: 20px !important;
+          background-color: red !important;
+          color: white !important;
+          border: 2px solid white !important;
+          padding: 10px 15px !important;
+          font-size: 16px !important;
+          transform: none !important;
+        `;
+      }
       
       if (checkCount >= 5) {
         clearInterval(interval);
