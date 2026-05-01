@@ -1036,14 +1036,22 @@ function readLastRound() {
 function syncResumeButton() {
   const btn = document.getElementById('btnResume');
   const lastRound = readLastRound();
-  if (!btn) return;
-  const hasRound = lastRound && Array.isArray(lastRound.cardIds) && lastRound.cardIds.length;
-  btn.hidden = !hasRound;
+  if (!btn) {
+    console.log('[Snakke] btnResume not found in DOM');
+    return;
+  }
+  const hasRound = lastRound && Array.isArray(lastRound.cardIds) && lastRound.cardIds.length > 0;
+  console.log('[Snakke] syncResumeButton:', { hasRound, lastRound });
   if (hasRound) {
+    btn.removeAttribute('hidden');
+    btn.style.display = 'inline-flex';
     const total    = lastRound.cardIds.length;
     const progress = Math.min((lastRound.idx || 0) + 1, total);
     const badge    = document.getElementById('resumeChipCount');
     if (badge) badge.textContent = `${progress}/${total}`;
+  } else {
+    btn.setAttribute('hidden', '');
+    btn.style.display = 'none';
   }
 }
 
@@ -1976,8 +1984,6 @@ document.querySelectorAll('.home-cat[data-cat]').forEach(btn => {
   });
 });
 
-document.getElementById('btnResume').addEventListener('click', resumeLastRound);
-
 // Export card function (called from setupModalListeners)
 async function exportCard(card, text) {
   const category = (TAG[card.category] || TAG.custom)[lang];
@@ -2171,8 +2177,23 @@ function init() {
   updateSavedChip();
   openSharedCardFromHash();
   setupModalListeners();
+
+  // Continue button handler
+  const btnResume = document.getElementById('btnResume');
+  if (btnResume) {
+    btnResume.addEventListener('click', () => {
+      console.log('[Snakke] Continue clicked');
+      resumeLastRound();
+    });
+  } else {
+    console.error('[Snakke] btnResume not found');
+  }
+
   window.addEventListener('scroll', syncMobileChrome, { passive: true });
   window.addEventListener('resize', syncMobileChrome);
+
+  // Ensure resume button is synced after all init
+  setTimeout(syncResumeButton, 0);
 }
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);
