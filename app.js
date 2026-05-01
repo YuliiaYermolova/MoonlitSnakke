@@ -1233,6 +1233,37 @@ function openOverlay(overlay, panel, focusTarget) {
   overlay.classList.add('open');
   syncBodyLock();
   setTimeout(() => (focusTarget || panel)?.focus(), 80);
+
+  // Swipe to close for mobile
+  if (IS_MOBILE && panel) {
+    let startY = 0;
+    let currentY = 0;
+    const onTouchStart = (e) => {
+      startY = e.touches[0].clientY;
+      panel.style.transition = 'none';
+    };
+    const onTouchMove = (e) => {
+      currentY = e.touches[0].clientY;
+      const delta = currentY - startY;
+      if (delta > 0) panel.style.transform = `translateY(${delta}px)`;
+    };
+    const onTouchEnd = () => {
+      panel.style.transition = '';
+      const delta = currentY - startY;
+      if (delta > 120) {
+        closeOverlay(overlay);
+        panel.style.transform = '';
+      } else {
+        panel.style.transform = '';
+      }
+      panel.removeEventListener('touchstart', onTouchStart);
+      panel.removeEventListener('touchmove', onTouchMove);
+      panel.removeEventListener('touchend', onTouchEnd);
+    };
+    panel.addEventListener('touchstart', onTouchStart, { passive: true });
+    panel.addEventListener('touchmove', onTouchMove, { passive: true });
+    panel.addEventListener('touchend', onTouchEnd, { passive: true });
+  }
 }
 
 function closeOverlay(overlay) {
@@ -1394,12 +1425,21 @@ const EMPTY = {
 };
 
 // ── RENDER ──
-function renderGrid() {
-  syncFilters();
+// ── RENDER ──
+let cardsLimit = 24;
+
+function renderGrid(append = false) {
+  if (!append) {
+    cardsLimit = 24;
+    syncFilters();
+  }
+  
   const list = getFiltered();
   const grid = document.getElementById('cardsGrid');
+  if (!grid) return;
 
   if (!list.length) {
+    if (append) return;
     let msg;
     if (searchQuery.trim()) msg = EMPTY.search[lang];
     else if (filter === 'saved') msg = EMPTY.saved[lang];
@@ -1409,7 +1449,8 @@ function renderGrid() {
     return;
   }
 
-  grid.innerHTML = list.map((card, i) => {
+  const chunk = list.slice(append ? cardsLimit - 24 : 0, cardsLimit);
+  const html = chunk.map((card, i) => {
     const isSaved  = saved.has(card.id);
     const isCustom = !!card.custom;
     const cat      = card.category;
@@ -1419,9 +1460,11 @@ function renderGrid() {
     const text     = card[lang] || card.ru || card.en;
     const safeText = escapeHTML(text);
     const safeTag  = escapeHTML(tagText);
+    const index    = append ? (cardsLimit - 24 + i + 1) : (i + 1);
+    
     return `<div class="${cls}" data-id="${card.id}" tabindex="0" role="button">
       <div class="card-item__top">
-        <span class="card-item__num">${String(i+1).padStart(2,'0')}</span>
+        <span class="card-item__num">${String(index).padStart(2,'0')}</span>
         <span class="card-item__tag ${tagClass}">${safeTag}</span>
       </div>
       <p class="card-item__preview">${safeText}</p>
@@ -1435,10 +1478,21 @@ function renderGrid() {
     </div>`;
   }).join('');
 
-  grid.querySelectorAll('.card-item').forEach(el => {
-    const card = list.find(item => item.id === parseInt(el.dataset.id, 10));
+  if (append) {
+    grid.insertAdjacentHTML('beforeend', html);
+  } else {
+    grid.innerHTML = html;
+  }
+
+  const targetElements = append 
+    ? Array.from(grid.children).slice(-chunk.length)
+    : Array.from(grid.children);
+
+  targetElements.forEach(el => {
+    const id = parseInt(el.dataset.id, 10);
+    const card = list.find(item => item.id === id);
     const text = card ? (card[lang] || card.ru || card.en) : '';
-    const open = () => openDeck(getFiltered(), parseInt(el.dataset.id, 10));
+    const open = () => openDeck(getFiltered(), id);
     el.setAttribute('aria-label', `${t(LABELS.open)}: ${text}`);
     el.addEventListener('click', e => { if (e.target.closest('.card-item__heart,.card-item__delete')) return; open(); });
     el.addEventListener('keydown', e => {
@@ -1447,19 +1501,38 @@ function renderGrid() {
         open();
       }
     });
-  });
-  grid.querySelectorAll('.card-item__heart').forEach(b => {
-    b.setAttribute('aria-label', b.classList.contains('saved') ? t(LABELS.unsave) : t(LABELS.save));
-    b.addEventListener('click', e => { e.stopPropagation(); toggleSave(parseInt(b.dataset.id, 10)); });
-  });
-  grid.querySelectorAll('.card-item__delete').forEach(b => {
-    b.setAttribute('aria-label', t(LABELS.delete));
-    b.title = t(LABELS.delete);
-    b.addEventListener('click', e => { e.stopPropagation(); deleteCustom(parseInt(b.dataset.id, 10)); });
+
+    const heart = el.querySelector('.card-item__heart');
+    if (heart) {
+      heart.setAttribute('aria-label', heart.classList.contains('saved') ? t(LABELS.unsave) : t(LABELS.save));
+      heart.addEventListener('click', e => { e.stopPropagation(); toggleSave(id); });
+    }
+
+    const del = el.querySelector('.card-item__delete');
+    if (del) {
+      del.setAttribute('aria-label', t(LABELS.delete));
+      del.title = t(LABELS.delete);
+      del.addEventListener('click', e => { e.stopPropagation(); deleteCustom(id); });
+    }
   });
 
+  // Infinite scroll check
+  if (cardsLimit < list.length) {
+    if (!window._scrollObserver) {
+      window._scrollObserver = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && cardsLimit < getFiltered().length) {
+          cardsLimit += 24;
+          renderGrid(true);
+        }
+      }, { rootMargin: '400px' });
+    }
+    window._scrollObserver.disconnect();
+    const last = grid.lastElementChild;
+    if (last) window._scrollObserver.observe(last);
+  }
+
   // Drag-and-drop for custom cards
-  if (filter === 'custom') {
+  if (filter === 'custom' && !append) {
     let draggedEl = null;
     grid.querySelectorAll('.card-item').forEach(el => {
       el.draggable = true;
@@ -2256,13 +2329,24 @@ function init() {
 
   // Resume button handlers are set up in the resumeOverlay section
 
-  window.addEventListener('scroll', syncMobileChrome, { passive: true });
   window.addEventListener('resize', syncMobileChrome);
 
   // Sync resume button counter after init
   setTimeout(() => {
     syncResumeButton();
   }, 200);
+
+  // Throttled scroll for mobile performance
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        syncMobileChrome();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }, { passive: true });
 }
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);
