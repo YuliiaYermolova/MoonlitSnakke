@@ -1476,6 +1476,8 @@ function toggleSave(id) {
   saved.has(id) ? saved.delete(id) : saved.add(id);
   saveSaved(); renderGrid();
   if (deck.length && deck[idx].id === id) syncFavBtn();
+  updateSavedChip();
+  if (document.getElementById('savedOverlay')?.classList.contains('open')) renderSavedGrid();
   track('card_saved_toggle', { id, saved: saved.has(id) });
 }
 
@@ -1487,6 +1489,83 @@ function syncFavBtn() {
   btn.setAttribute('aria-pressed', String(is));
   btn.setAttribute('aria-label', is ? t(LABELS.unsave) : t(LABELS.save));
 }
+
+// ── SAVED OVERLAY ──
+function updateSavedChip() {
+  const chip = document.getElementById('savedChipCount');
+  if (!chip) return;
+  const count = saved.size;
+  chip.textContent = String(count);
+  chip.hidden = count === 0;
+}
+
+function renderSavedGrid() {
+  const grid = document.getElementById('savedGrid');
+  if (!grid) return;
+  // Re-sync from localStorage in case inline script wrote to it
+  const storedIds = readJSON(STORAGE.saved, []);
+  saved.clear();
+  storedIds.forEach(id => saved.add(id));
+  updateSavedChip();
+
+  const list = allCards().filter(c => saved.has(c.id));
+  const emptyMsg = { en: 'No saved cards yet. Tap ♡ on any card.', no: 'Ingen lagrede kort. Trykk ♡ på et kort.', ru: 'Нет сохранённых карточек. Нажми ♡ на любой карточке.' };
+
+  if (!list.length) {
+    grid.innerHTML = `<p class="saved-empty">${emptyMsg[lang] || emptyMsg.en}</p>`;
+    return;
+  }
+
+  grid.innerHTML = list.map((card, i) => {
+    const cat      = card.category;
+    const tagClass = `card-item__tag--${cat}`;
+    const tagText  = (TAG[cat] || TAG.custom)[lang];
+    const text     = card[lang] || card.ru || card.en;
+    const safeText = escapeHTML(text);
+    const safeTag  = escapeHTML(tagText);
+    return `<div class="card-item card-item--saved" data-id="${card.id}" tabindex="0" role="button" aria-label="${safeText}">
+      <div class="card-item__top">
+        <span class="card-item__num">${String(i + 1).padStart(2, '0')}</span>
+        <span class="card-item__tag ${tagClass}">${safeTag}</span>
+      </div>
+      <p class="card-item__preview">${safeText}</p>
+      <div class="card-item__footer">
+        <span class="card-item__cta">${EMPTY.open[lang]}</span>
+        <button class="card-item__heart saved" type="button" data-id="${card.id}" aria-pressed="true" aria-label="${t(LABELS.unsave)}">♥</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  grid.querySelectorAll('.card-item').forEach(el => {
+    const id = parseInt(el.dataset.id, 10);
+    el.addEventListener('click', e => {
+      if (e.target.closest('.card-item__heart')) return;
+      closeSavedOverlay();
+      setTimeout(() => openDeck(list, id), 80);
+    });
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); closeSavedOverlay(); setTimeout(() => openDeck(list, id), 80); }
+    });
+  });
+  grid.querySelectorAll('.card-item__heart').forEach(b => {
+    b.addEventListener('click', e => { e.stopPropagation(); toggleSave(parseInt(b.dataset.id, 10)); });
+  });
+}
+
+function openSavedOverlay() {
+  renderSavedGrid();
+  const ov    = document.getElementById('savedOverlay');
+  const panel = ov?.querySelector('.saved-modal');
+  if (ov && panel) openOverlay(ov, panel, panel);
+}
+function closeSavedOverlay() {
+  const ov = document.getElementById('savedOverlay');
+  if (ov) closeOverlay(ov);
+}
+
+document.getElementById('btnSaved')?.addEventListener('click', openSavedOverlay);
+document.getElementById('savedClose')?.addEventListener('click', closeSavedOverlay);
+document.getElementById('savedOverlay')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeSavedOverlay(); });
 
 // ── CUSTOM CARDS ──
 function deleteCustom(id) {
@@ -2103,8 +2182,9 @@ function init() {
   applyLang(lang);
   livePreview();
   syncMobileChrome();
+  updateSavedChip();
   openSharedCardFromHash();
-  setupModalListeners(); // Setup card modal button handlers
+  setupModalListeners();
   window.addEventListener('scroll', syncMobileChrome, { passive: true });
   window.addEventListener('resize', syncMobileChrome);
 }

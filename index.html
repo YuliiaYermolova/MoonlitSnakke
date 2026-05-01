@@ -23,8 +23,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preload" href="https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuGKYAZ9hjp-Ek-_EeA.woff2" as="font" type="font/woff2" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="preload" href="style.css?v=10" as="style" />
-  <link rel="stylesheet" href="style.css?v=10" />
+  <link rel="preload" href="style.css?v=11" as="style" />
+  <link rel="stylesheet" href="style.css?v=11" />
 </head>
 <body>
   <script>
@@ -180,6 +180,11 @@
         <button class="hero-chip" id="btnResume" type="button">
           <span class="hero-chip__glyph">↺</span>
           <span data-en="Continue last round" data-no="Fortsett runden" data-ru="Продолжить раунд">Continue last round</span>
+        </button>
+        <button class="hero-chip" id="btnSaved" type="button">
+          <span class="hero-chip__glyph">♥</span>
+          <span data-en="Saved" data-no="Lagret" data-ru="Сохранённые">Saved</span>
+          <span class="hero-chip__count" id="savedChipCount" hidden>0</span>
         </button>
       </div>
     </div>
@@ -500,6 +505,20 @@
     </div>
   </div>
 
+  <!-- ── SAVED OVERLAY ── -->
+  <div class="overlay" id="savedOverlay">
+    <div class="saved-modal" role="dialog" aria-modal="true" aria-labelledby="savedTitle" tabindex="-1">
+      <div class="saved-modal__head">
+        <div>
+          <p class="section-eyebrow" data-en="Your collection" data-no="Din samling" data-ru="Ваша коллекция">Your collection</p>
+          <h2 class="saved-modal__title" id="savedTitle" data-en="Saved cards" data-no="Lagrede kort" data-ru="Сохранённые карточки">Saved cards</h2>
+        </div>
+        <button class="icon-close" id="savedClose" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="saved-grid" id="savedGrid"></div>
+    </div>
+  </div>
+
   <!-- ── MUSIC PLAYER ── -->
   <div class="music-player" id="musicPlayer">
     <audio id="audio" loop preload="none" aria-label="Background music"><source data-src="bgmusic.mp3" type="audio/mpeg"/></audio>
@@ -522,7 +541,7 @@
   <!-- Spark-to-card launcher -->
   <div class="spark-launcher" id="sparkLauncher" aria-hidden="true"></div>
 
-  <script src="app.js?v=24" defer></script>
+  <script src="app.js?v=25" defer></script>
   <script>
     // ── Spark animation + click-handler patch ──
     document.addEventListener('DOMContentLoaded', function () {
