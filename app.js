@@ -1069,23 +1069,23 @@ function syncResumeButton() {
   if (hasRound) {
     console.log('[Snakke] Showing button - hasRound is true');
     
-    // Force button to be visible immediately with !important
+    // Force button to be visible in its natural position
     btn.style.cssText = `
       display: inline-flex !important;
       visibility: visible !important;
       opacity: 1 !important;
       pointer-events: auto !important;
-      position: fixed !important;
-      z-index: 99999 !important;
-      top: 20px !important;
-      left: 20px !important;
-      background-color: red !important;
-      color: white !important;
-      border: 2px solid white !important;
-      padding: 10px 15px !important;
-      font-size: 16px !important;
+      position: relative !important;
+      z-index: 501 !important;
+      background-color: rgba(8,18,36,0.45) !important;
+      color: var(--w) !important;
+      border: 1px solid var(--border) !important;
+      padding: 9px 12px !important;
+      font-size: 12px !important;
       transform: none !important;
       transition: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
     `;
     
     // Immediate check after applying styles
