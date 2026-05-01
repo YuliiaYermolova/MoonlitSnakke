@@ -48,7 +48,6 @@ function removeStored(key) {
   } catch {}
 }
 
-// ── STARS + SHOOTING STARS ──
 (function () {
   const canvas = document.getElementById('starsCanvas');
   if (!canvas || REDUCE_MOTION || IS_MOBILE) return;
@@ -110,7 +109,6 @@ function removeStored(key) {
   window.addEventListener('resize', () => { resize(); mkStars(); });
 }());
 
-// ── EMBER PARTICLES ──
 (function () {
   const canvas = document.getElementById('emberCanvas');
   if (!canvas || REDUCE_MOTION || IS_MOBILE) return;
@@ -164,7 +162,6 @@ function removeStored(key) {
   window.addEventListener('resize', resize);
 }());
 
-// ── PARALLAX ──
 (function () {
   if (REDUCE_MOTION) return;
   const moon = document.getElementById('moonWrap');
@@ -180,7 +177,6 @@ function removeStored(key) {
   }, { passive: true });
 }());
 
-// ── CAMPFIRE SOUND (Web Audio — brown noise crackling) ──
 const fireAudio = (function () {
   let ctx, gain, running = false, inited = false;
 
@@ -241,7 +237,6 @@ if (fireBtn) {
   });
 }
 
-// ── DATA ──
 const CARDS = [
   { id: 1, category:'light', en:'What was your favourite toy as a child?', no:'Hva var favorittleken din som barn?', ru:'Какая у тебя была любимая игрушка в детстве?' },
   { id: 2, category:'light', en:'What could you do for hours as a child?', no:'Hva kunne du holde på med i timevis som barn?', ru:'Чем ты мог(ла) заниматься часами, когда был(а) ребёнком?' },
@@ -838,6 +833,7 @@ const ROUND_TITLES = {
   random:  { en: 'Random deck',         no: 'Tilfeldig kortstokk',   ru: 'Случайная колода' },
   partner: { en: 'Partner mode',        no: 'Partnermodus',          ru: 'Режим для двоих' },
   resume:  { en: 'Continue last round', no: 'Fortsett runden',       ru: 'Продолжить раунд' },
+  saved:   { en: 'Saved cards',         no: 'Lagrede kort',          ru: 'Сохранённые' },
 };
 
 const TOAST = {
@@ -912,7 +908,6 @@ const PARTNER_RECIPE = [
   { category: 'bold', count: 4 },
 ];
 
-// ── STATE ──
 let lang   = readText(STORAGE.lang, document.documentElement.lang || 'en');
 if (!['en', 'no', 'ru'].includes(lang)) lang = 'en';
 let filter = 'all', deck = [], idx = 0, session = 0;
@@ -1069,48 +1064,27 @@ function resumeLastRound() {
   if (!lastRound) return;
 
   const cards = resolveStoredDeck(lastRound.cardIds);
-  if (!cards.length) {
+  if (!cards || !cards.length) {
     localStorage.removeItem(STORAGE.lastRound);
     syncResumeButton();
     return;
   }
 
-  // 1. Force close ALL overlays first
-  document.querySelectorAll('.overlay').forEach(ov => {
-    ov.classList.remove('open');
-  });
-
-  // 2. Set global state directly
   const rawIdx = lastRound.currentIndex !== undefined ? lastRound.currentIndex : (lastRound.idx || 0);
-  idx = Math.max(0, Math.min(rawIdx, cards.length - 1));
-  deck = cards;
-  roundMeta = lastRound.roundMeta || { source: 'resume', label: t(ROUND_TITLES.resume) };
+  const targetIdx = Math.max(0, Math.min(rawIdx, cards.length - 1));
+  const targetId = cards[targetIdx].id;
+  const meta = lastRound.roundMeta || { source: 'resume', label: t(ROUND_TITLES.resume) };
 
-  // 3. Force update modal UI before showing
-  const qEl = document.getElementById('modalQuestion');
-  if (qEl) qEl.textContent = deck[idx][lang] || deck[idx].ru || deck[idx].en;
-  
-  updateModalMeta();
-  
-  // 4. Show modal overlay directly
-  const mOverlay = document.getElementById('modalOverlay');
-  if (mOverlay) {
-    mOverlay.classList.add('open');
-    syncBodyLock();
-    
-    // Add to history and update UI
-    addToHistory(deck[idx].id);
-    bumpSession();
-    
-    track('round_resumed', {
-      source: roundMeta.source,
-      size: deck.length,
-      index: idx
-    });
-  }
+  openDeckDirect(cards, targetId, meta);
 }
 
-// ── RULES ──
+function closeModal() {
+  const mOverlay = document.getElementById('modalOverlay');
+  if (mOverlay) closeOverlay(mOverlay);
+  persistLastRound();
+  history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+}
+
 const RULES = {
   en: [
     {
@@ -1251,7 +1225,6 @@ function openOverlay(overlay, panel, focusTarget) {
   syncBodyLock();
   setTimeout(() => (focusTarget || panel)?.focus(), 80);
 
-  // Swipe to close for mobile
   if (IS_MOBILE && panel) {
     let startY = 0;
     let currentY = 0;
@@ -1284,7 +1257,12 @@ function openOverlay(overlay, panel, focusTarget) {
 }
 
 function closeOverlay(overlay) {
+  if (!overlay) return;
   overlay.classList.remove('open');
+  const panel = overlay.querySelector('.card-modal, .saved-modal, .rules-modal, .create-modal');
+  if (panel) panel.style.transform = '';
+  overlay.style.display = '';
+  
   syncBodyLock();
   restoreFocus();
 }
@@ -1372,7 +1350,6 @@ rulesBtn.addEventListener('click', () => {
 rulesClose.addEventListener('click', () => closeOverlay(rulesOverlay));
 rulesOverlay.addEventListener('click', e => { if (e.target === e.currentTarget) closeOverlay(rulesOverlay); });
 
-// ── LANG ──
 function applyLang(l) {
   lang = l;
   document.querySelectorAll('[data-en]').forEach(el => {
@@ -1388,7 +1365,6 @@ function applyLang(l) {
 }
 document.querySelectorAll('.lang-btn').forEach(b => b.addEventListener('click', () => applyLang(b.dataset.lang)));
 
-// ── FILTER ──
 function syncFilters() {
   document.querySelectorAll('.filt').forEach(t => {
     if (t.dataset[lang]) t.textContent = t.dataset[lang];
@@ -1432,7 +1408,6 @@ function getFiltered() {
   return result;
 }
 
-// ── EMPTY STATE MESSAGES ──
 const EMPTY = {
   saved:   { en: 'No saved cards yet. Tap ♡ on any card.', no: 'Ingen lagrede kort. Trykk ♡ på et kort.', ru: 'Нет сохранённых карточек. Нажми ♡ на любой карточке.' },
   history: { en: 'No viewed cards yet. Start a round!',  no: 'Ingen viste kort ennå. Start en runde!',  ru: 'Нет просмотренных карточек. Начните раунд!' },
@@ -1441,8 +1416,6 @@ const EMPTY = {
   open:    { en: 'Open →',                                no: 'Åpne →',                                  ru: 'Открыть →' },
 };
 
-// ── RENDER ──
-// ── RENDER ──
 let cardsLimit = 24;
 
 function renderGrid(append = false) {
@@ -1533,7 +1506,6 @@ function renderGrid(append = false) {
     }
   });
 
-  // Infinite scroll check
   if (cardsLimit < list.length) {
     if (!window._scrollObserver) {
       window._scrollObserver = new IntersectionObserver((entries) => {
@@ -1548,7 +1520,6 @@ function renderGrid(append = false) {
     if (last) window._scrollObserver.observe(last);
   }
 
-  // Drag-and-drop for custom cards
   if (filter === 'custom' && !append) {
     let draggedEl = null;
     grid.querySelectorAll('.card-item').forEach(el => {
@@ -1604,7 +1575,6 @@ function syncFavBtn() {
   btn.setAttribute('aria-label', is ? t(LABELS.unsave) : t(LABELS.save));
 }
 
-// ── SAVED OVERLAY ──
 function updateSavedChip() {
   const chip = document.getElementById('savedChipCount');
   if (!chip) return;
@@ -1616,7 +1586,6 @@ function updateSavedChip() {
 function renderSavedGrid() {
   const grid = document.getElementById('savedGrid');
   if (!grid) return;
-  // Re-sync from localStorage in case inline script wrote to it
   const storedIds = readJSON(STORAGE.saved, []);
   saved.clear();
   storedIds.forEach(id => saved.add(id));
@@ -1637,7 +1606,7 @@ function renderSavedGrid() {
     const text     = card[lang] || card.ru || card.en;
     const safeText = escapeHTML(text);
     const safeTag  = escapeHTML(tagText);
-    return `<div class="card-item card-item--saved" data-id="${card.id}" tabindex="0" role="button" aria-label="${safeText}">
+    return `<div class="card-item card-item--saved" onclick="handleSavedCardClick(${card.id})" tabindex="0" role="button" aria-label="${safeText}">
       <div class="card-item__top">
         <span class="card-item__num">${String(i + 1).padStart(2, '0')}</span>
         <span class="card-item__tag ${tagClass}">${safeTag}</span>
@@ -1645,26 +1614,18 @@ function renderSavedGrid() {
       <p class="card-item__preview">${safeText}</p>
       <div class="card-item__footer">
         <span class="card-item__cta">${EMPTY.open[lang]}</span>
-        <button class="card-item__heart saved" type="button" data-id="${card.id}" aria-pressed="true" aria-label="${t(LABELS.unsave)}">♥</button>
+        <button class="card-item__heart saved" type="button" onclick="event.stopPropagation(); toggleSave(${card.id});" aria-pressed="true" aria-label="${t(LABELS.unsave)}">♥</button>
       </div>
     </div>`;
   }).join('');
-
-  grid.querySelectorAll('.card-item').forEach(el => {
-    const id = parseInt(el.dataset.id, 10);
-    el.addEventListener('click', e => {
-      if (e.target.closest('.card-item__heart')) return;
-      closeSavedOverlay();
-      setTimeout(() => openDeck(list, id), 80);
-    });
-    el.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); closeSavedOverlay(); setTimeout(() => openDeck(list, id), 80); }
-    });
-  });
-  grid.querySelectorAll('.card-item__heart').forEach(b => {
-    b.addEventListener('click', e => { e.stopPropagation(); toggleSave(parseInt(b.dataset.id, 10)); });
-  });
 }
+
+window.handleSavedCardClick = function(id) {
+  const list = allCards().filter(c => saved.has(c.id));
+  if (!list.length) return;
+  closeSavedOverlay();
+  openDeckDirect(list, id, { source: 'saved', label: t(ROUND_TITLES.saved) });
+};
 
 function openSavedOverlay() {
   renderSavedGrid();
@@ -1681,7 +1642,6 @@ document.getElementById('btnSaved')?.addEventListener('click', openSavedOverlay)
 document.getElementById('savedClose')?.addEventListener('click', closeSavedOverlay);
 document.getElementById('savedOverlay')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeSavedOverlay(); });
 
-// ── RESUME OVERLAY ──
 function renderResumeGrid() {
   const grid = document.getElementById('resumeGrid');
   const empty = document.getElementById('resumeEmpty');
@@ -1703,7 +1663,7 @@ function renderResumeGrid() {
   const roundTitle = lastRound.scenarioTitle || lastRound.roundMeta?.label || t(ROUND_TITLES.resume);
   
   const card = document.createElement('div');
-  card.className = 'card-item resume-card-action'; // Add specific class
+  card.className = 'card-item resume-card-action'; 
   card.style.cursor = 'pointer';
   card.innerHTML = `
     <div class="card-item__top">
@@ -1718,11 +1678,11 @@ function renderResumeGrid() {
     </div>
   `;
   
-  card.onclick = (e) => {
-    e.preventDefault();
+  card.addEventListener('click', (e) => {
     e.stopPropagation();
+    closeResumeOverlay();
     resumeLastRound();
-  };
+  });
   
   grid.appendChild(card);
 }
@@ -1743,7 +1703,6 @@ document.getElementById('btnResume')?.addEventListener('click', openResumeOverla
 document.getElementById('resumeClose')?.addEventListener('click', closeResumeOverlay);
 document.getElementById('resumeOverlay')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeResumeOverlay(); });
 
-// ── CUSTOM CARDS ──
 function deleteCustom(id) {
   custom = custom.filter(c => c.id !== id);
   saveCustom();
@@ -1760,7 +1719,7 @@ const preview  = document.getElementById('createPreview');
 
 const PH = { en: 'Your question will appear here…', no: 'Spørsmålet ditt vises her…', ru: 'Здесь появится твой вопрос…' };
 
-document.getElementById('fabCreate').addEventListener('click', () => {
+document.getElementById('fabCreate')?.addEventListener('click', () => {
   openOverlay(createOverlay, createPanel, lang === 'ru' ? inputRU : lang === 'no' ? inputNO : inputEN);
 });
 document.getElementById('createClose').addEventListener('click', closeCreate);
@@ -1798,7 +1757,6 @@ document.getElementById('createSubmit').addEventListener('click', () => {
   renderGrid();
 });
 
-// ── ROUND NOTES ──
 const noteOverlay = document.getElementById('noteOverlay');
 const notePanel = noteOverlay.querySelector('.note-modal');
 const noteInput = document.getElementById('noteInput');
@@ -1865,29 +1823,38 @@ document.getElementById('btnClearNotes').addEventListener('click', () => {
   track('round_notes_cleared');
 });
 
-// ── DECK / MODAL ──
 var modalOverlay = document.getElementById('modalOverlay');
-var modalPanel = modalOverlay.querySelector('.card-modal');
+var modalPanel = modalOverlay ? modalOverlay.querySelector('.card-modal') : null;
 
 function openDeckDirect(cards, startId, meta = {}) {
-  if (!cards.length) return;
+  if (!cards || !cards.length) return;
+  
+  const mOverlay = document.getElementById('modalOverlay');
+  const mPanel = mOverlay ? mOverlay.querySelector('.card-modal') : null;
+  const qEl = document.getElementById('modalQuestion');
+  
+  if (!mOverlay || !qEl) {
+    return;
+  }
+
   deck = cards;
   idx  = Math.max(0, cards.findIndex(c => c.id === startId));
+  
   roundMeta = {
     source: meta.source || 'random',
     label: meta.label || t(ROUND_TITLES.random),
     partnerMode: Boolean(meta.partnerMode),
   };
-  document.getElementById('modalQuestion').textContent = deck[idx][lang] || deck[idx].ru || deck[idx].en;
+  
+  qEl.textContent = deck[idx][lang] || deck[idx].ru || deck[idx].en;
   addToHistory(deck[idx].id);
   updateModalMeta();
-  openOverlay(modalOverlay, modalPanel, modalPanel);
+  openOverlay(mOverlay, mPanel, mPanel);
   bumpSession();
   persistLastRound();
   track('round_started', { source: roundMeta.source, partnerMode: roundMeta.partnerMode, size: deck.length });
 }
 
-// Wrapper to show tap screen first
 function openDeck(cards, startId, meta = {}) {
   openTapScreen(cards, startId, meta);
 }
@@ -1898,7 +1865,8 @@ function updateModalMeta() {
   const card = deck[idx];
   if (card) addToHistory(card.id);
   document.getElementById('modalDeckLabel').textContent = (TAG[card.category] || TAG.custom)[lang];
-  modalPanel.dataset.cat = card.category || 'light';
+  const _panel = modalPanel || document.querySelector('#modalOverlay .card-modal');
+  if (_panel) _panel.dataset.cat = card.category || 'light';
   document.getElementById('cardIndex').textContent  = idx + 1;
   document.getElementById('cardTotal').textContent  = deck.length;
   document.getElementById('progressFill').style.width = ((idx+1)/deck.length*100) + '%';
@@ -1916,9 +1884,6 @@ function updateModalMeta() {
   syncFavBtn();
   persistLastRound();
   history.replaceState(null, '', buildShareUrl());
-  // SVG background removed - using gradient only
-  // const artEl = document.getElementById('modalArt');
-  // if (artEl) artEl.innerHTML = CAT_SVG[card.category] || CAT_SVG.light;
 }
 
 const flipSound = (function() {
@@ -1957,24 +1922,28 @@ function animateTo(newIdx) {
     return;
   }
   flipSound();
-  modalPanel.classList.add('card-falling');
-  modalOverlay.classList.add('fire-burst');
+  const _ov = modalOverlay || document.getElementById('modalOverlay');
+  const _pan = modalPanel || document.querySelector('#modalOverlay .card-modal');
+  _pan?.classList.add('card-falling');
+  _ov?.classList.add('fire-burst');
   setTimeout(() => {
     idx = newIdx;
     document.getElementById('modalQuestion').textContent = deck[idx][lang] || deck[idx].ru || deck[idx].en;
     updateModalMeta();
     persistLastRound();
-    modalPanel.classList.remove('card-falling');
-    modalPanel.classList.add('card-rising');
-    modalOverlay.classList.remove('fire-burst');
-    setTimeout(() => modalPanel.classList.remove('card-rising'), 430);
+    _pan?.classList.remove('card-falling');
+    _pan?.classList.add('card-rising');
+    _ov?.classList.remove('fire-burst');
+    setTimeout(() => _pan?.classList.remove('card-rising'), 430);
     bumpSession();
     track('card_advanced', { index: idx + 1, source: roundMeta.source });
   }, 430);
 }
 
 function closeModal() {
-  closeOverlay(modalOverlay);
+  const mOverlay = document.getElementById('modalOverlay');
+  if (mOverlay) closeOverlay(mOverlay);
+  
   persistLastRound();
   history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
 }
@@ -2032,17 +2001,10 @@ function setupModalListeners() {
   });
 }
 
-// Note: btnShuffle handler moved to inline script in index.html to support spark animation
-// document.getElementById('btnShuffle').addEventListener('click', () => {
-//   const all = allCards();
-//   const pick = all[Math.floor(Math.random()*all.length)];
-//   openDeck(all, pick.id, { source: 'random', label: t(ROUND_TITLES.random) });
-// });
 const categoryOverlay = document.getElementById('categoryOverlay');
 const categoryPanel   = categoryOverlay.querySelector('.category-modal');
 
 function openCategoryOverlay() {
-  // sync translated text in tiles
   categoryPanel.querySelectorAll('[data-en]').forEach(el => {
     el.textContent = el.dataset[lang] || el.dataset.en;
   });
@@ -2057,8 +2019,6 @@ document.getElementById('btnScroll').addEventListener('click', () => {
 document.getElementById('categoryClose').addEventListener('click', closeCategoryOverlay);
 categoryOverlay.addEventListener('click', e => { if (e.target === e.currentTarget) closeCategoryOverlay(); });
 
-// Tarot-style illustration: hand-drawn card with paper texture, double border,
-// crescent moons at top/bottom, sun with radiating lines in center, corner ornaments
 const TAROT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450" width="100%" height="100%" preserveAspectRatio="none">
   <defs>
     <filter id="handDrawn">
@@ -2149,7 +2109,6 @@ document.querySelectorAll('.home-cat[data-cat]').forEach(btn => {
   });
 });
 
-// Export card function (called from setupModalListeners)
 async function exportCard(card, text) {
   const category = (TAG[card.category] || TAG.custom)[lang];
   const canvas = document.createElement('canvas');
@@ -2219,7 +2178,6 @@ async function exportCard(card, text) {
   }
 }
 
-// ── SWIPE ──
 (function () {
   const modal = document.querySelector('.card-modal');
   if (!modal) return;
@@ -2233,7 +2191,6 @@ async function exportCard(card, text) {
   }, { passive:true });
 }());
 
-// ── KEYBOARD ──
 document.addEventListener('keydown', e => {
   const mo = modalOverlay.classList.contains('open');
   const co = createOverlay.classList.contains('open');
@@ -2249,7 +2206,6 @@ document.addEventListener('keydown', e => {
   if (e.key==='s'||e.key==='S') { if (deck.length) toggleSave(deck[idx].id); }
 });
 
-// ── MUSIC PLAYER ──
 (function () {
   const audio  = document.getElementById('audio');
   const play   = document.getElementById('musicPlay');
@@ -2329,9 +2285,7 @@ syncFireButton = function () {
   fireBtn.title = running ? t(LABELS.fireOff) : t(LABELS.fireOn);
 };
 
-// ── INIT ──
 function init() {
-  console.log('[Snakke] init() called');
   document.getElementById('heroCardCount').textContent = CARDS.length;
   renderScenarios();
   renderNotes();
@@ -2344,16 +2298,13 @@ function init() {
   openSharedCardFromHash();
   setupModalListeners();
 
-  // Resume button handlers are set up in the resumeOverlay section
 
   window.addEventListener('resize', syncMobileChrome);
 
-  // Sync resume button counter after init
   setTimeout(() => {
     syncResumeButton();
   }, 200);
 
-  // Throttled scroll for mobile performance
   let ticking = false;
   window.addEventListener('scroll', () => {
     if (!ticking) {
@@ -2371,7 +2322,6 @@ if (document.readyState === 'loading') {
   init();
 }
 
-// ── THEME TOGGLE ──
 const themeBtn = document.getElementById('themeBtn');
 let isDay = readText(STORAGE.theme) === 'day';
 function applyTheme() {
@@ -2388,13 +2338,11 @@ if (themeBtn) {
   });
 }
 
-// ── TAP TO DRAW SCREEN ──
 const tapOverlay = document.getElementById('tapOverlay');
 const tapScreen = tapOverlay?.querySelector('.tap-screen');
 const tapText = tapOverlay?.querySelector('.tap-text');
 const tapCardPlaceholder = tapOverlay?.querySelector('.tap-card-placeholder');
 
-// Stars for tap screen
 (function initTapStars() {
   const canvas = document.getElementById('tapStarsCanvas');
   if (!canvas || REDUCE_MOTION || IS_MOBILE) return;
@@ -2408,7 +2356,6 @@ const tapCardPlaceholder = tapOverlay?.querySelector('.tap-card-placeholder');
   resize();
   window.addEventListener('resize', resize, { passive: true });
 
-  // Create stars
   for (let i = 0; i < 120; i++) {
     stars.push({
       x: Math.random() * W,
@@ -2426,7 +2373,6 @@ const tapCardPlaceholder = tapOverlay?.querySelector('.tap-card-placeholder');
     }
     ctx.clearRect(0, 0, W, H);
 
-    // Regular stars
     stars.forEach(s => {
       s.a += s.d;
       const alpha = 0.3 + Math.abs(Math.sin(s.a)) * 0.7;
@@ -2437,7 +2383,6 @@ const tapCardPlaceholder = tapOverlay?.querySelector('.tap-card-placeholder');
       ctx.fill();
     });
 
-    // Shooting stars
     if (Math.random() < 0.008 && shooters.length < 2) {
       shooters.push({
         x: Math.random() * W,
@@ -2502,16 +2447,13 @@ function closeTapScreen() {
 function revealCard() {
   if (!tapPendingDeck) return;
 
-  // Start animations
   tapCardPlaceholder?.classList.add('drawing');
   tapText?.classList.add('fading');
   tapScreen?.classList.add('exiting');
 
-  // Wait for animation then open actual card
   setTimeout(() => {
     closeTapScreen();
     const { cards, startId, meta } = tapPendingDeck;
-    // Small delay for transition
     setTimeout(() => {
       openDeckDirect(cards, startId, meta);
     }, 100);
@@ -2519,10 +2461,8 @@ function revealCard() {
   }, 600);
 }
 
-// Handle tap/click
 if (tapOverlay) {
   tapOverlay.addEventListener('click', (e) => {
-    // Create ripple effect
     const ripple = document.createElement('div');
     ripple.className = 'tap-ripple';
     const size = 100;

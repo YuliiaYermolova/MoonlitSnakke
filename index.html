@@ -23,12 +23,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preload" href="https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuGKYAZ9hjp-Ek-_EeA.woff2" as="font" type="font/woff2" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="preload" href="style.css?v=12" as="style" />
-  <link rel="stylesheet" href="style.css?v=12" />
+  <link rel="preload" href="style.css?v=13" as="style" />
+  <link rel="stylesheet" href="style.css?v=13" />
 </head>
 <body>
   <script>
-    // Remove canvas animations on mobile for performance
     if (window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768) {
       document.documentElement.classList.add('mobile');
     }
@@ -557,38 +556,30 @@
   <!-- Spark-to-card launcher -->
   <div class="spark-launcher" id="sparkLauncher" aria-hidden="true"></div>
 
-  <script src="app.js?v=28" defer></script>
+  <script src="app.js?v=33" defer></script>
   <script>
-    // ── Spark animation + click-handler patch ──
     document.addEventListener('DOMContentLoaded', function () {
       const launcher   = document.getElementById('sparkLauncher');
       const campfire   = document.getElementById('campfire');
       const btnShuffle = document.getElementById('btnShuffle');
       const btnScroll  = document.getElementById('btnScroll');
 
-      // Use app.js globals so that Continue / resumeLastRound work seamlessly.
-      // deck, idx and roundMeta are declared in app.js; we just keep a local
-      // fallback for the badge label until roundMeta is set.
       let levelLabel = '';
 
       function persistIfReady() {
         if (typeof persistLastRound === 'function') persistLastRound();
       }
 
-      // Always read the active language directly from the lang switcher,
-      // so it stays correct even if app.js' global goes stale.
       function getLang() {
         return document.querySelector('.lang-btn.active')?.dataset.lang || 'en';
       }
 
-      // Walk every translatable element and apply the current language.
       function applyLangAll() {
         const L = getLang();
         document.querySelectorAll('[data-en]').forEach(el => {
           const v = el.dataset[L];
           if (v != null && v !== '') el.textContent = v;
         });
-        // Also update the open card question text if a card is showing.
         if (typeof deck !== 'undefined' && deck.length && deck[idx]) {
           const card = deck[idx];
           const q = document.getElementById('modalQuestion');
@@ -596,7 +587,6 @@
         }
       }
 
-      // Wire the language switcher (the original handlers are unreliable).
       document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           document.querySelectorAll('.lang-btn').forEach(b => {
@@ -610,7 +600,6 @@
         }, true);
       });
 
-      // ── Spark from campfire ──
       function fireSpark() {
         if (!launcher || !campfire) return;
         const rect = campfire.getBoundingClientRect();
@@ -624,7 +613,6 @@
         setTimeout(() => s.remove(), 900);
       }
 
-      // ── Card modal control ──
       function showCard(card) {
         if (!card) return;
         const overlay = document.getElementById('modalOverlay');
@@ -674,7 +662,6 @@
         const all = allCards();
         const filtered = category ? all.filter(c => c.category === category) : all;
         const shuffled = shuffle(filtered.length ? filtered : all);
-        // Sync with app.js globals
         deck = shuffled;
         idx = 0;
         levelLabel = label || '';
@@ -708,7 +695,6 @@
         persistIfReady();
       }
 
-      // Modal close / next / prev
       document.getElementById('modalClose')?.addEventListener('click', closeCardModal);
       document.getElementById('modalOverlay')?.addEventListener('click', e => {
         if (e.target === e.currentTarget) closeCardModal();
@@ -732,8 +718,6 @@
         persistIfReady();
       }, true);
 
-      // ── Action buttons (Fav, Export) ──
-      // LocalStorage helpers for favorites
       function getSavedCards() {
         try { return JSON.parse(localStorage.getItem('snk_saved') || '[]'); } catch { return []; }
       }
@@ -766,14 +750,12 @@
         const card = deck[idx];
         const nowSaved = toggleSaveCard(card.id);
         updateFavButton();
-        // Show toast
         const msg = nowSaved ? { en: 'Saved!', no: 'Lagret!', ru: 'Сохранено!' } : { en: 'Removed', no: 'Fjernet', ru: 'Удалено' };
         const L = getLang();
         const toast = document.getElementById('toast');
         if (toast) { toast.textContent = msg[L] || msg.en; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 1500); }
       }, true);
 
-      // Update fav button when card changes
       const origShowCard = showCard;
       showCard = function(card) {
         origShowCard(card);
@@ -786,13 +768,11 @@
         const card = deck[idx];
         const text = card[getLang()] || card.en || card.ru || '';
 
-        // Create canvas and export
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         const width = 800, height = 1000;
         canvas.width = width; canvas.height = height;
 
-        // Background gradient
         const grad = ctx.createLinearGradient(0, 0, 0, height);
         grad.addColorStop(0, '#0f2448');
         grad.addColorStop(0.5, '#091830');
@@ -800,7 +780,6 @@
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, width, height);
 
-        // Category badge
         const cat = card.category || 'light';
         const catLabels = { light: { en: 'LIGHT', no: 'LETT', ru: 'СВЕТЛЫЕ' }, deep: { en: 'DEEP', no: 'DYPT', ru: 'ГЛУБОКИЕ' }, bold: { en: 'BOLD', no: 'MODIG', ru: 'СМЕЛЫЕ' } };
         const catLabel = catLabels[cat]?.[getLang()] || catLabels[cat]?.en || cat.toUpperCase();
@@ -809,7 +788,6 @@
         ctx.textAlign = 'center';
         ctx.fillText(catLabel, width/2, 80);
 
-        // Question text
         ctx.fillStyle = '#ffffff';
         ctx.font = '400 36px "DM Serif Display", serif';
         const words = text.split(' ');
@@ -830,12 +808,10 @@
         }
         ctx.fillText(line, width/2, y);
 
-        // Footer
         ctx.fillStyle = '#a0b0d0';
         ctx.font = '12px Inter, sans-serif';
         ctx.fillText('Snakke — Questions for Couples', width/2, height - 60);
 
-        // Download
         canvas.toBlob(blob => {
           if (!blob) return;
           const url = URL.createObjectURL(blob);
@@ -847,7 +823,6 @@
         }, 'image/png');
       }, true);
 
-      // ── Start game → random across all levels ──
       btnShuffle?.addEventListener('click', e => {
         e.stopImmediatePropagation();
         fireSpark();
@@ -855,7 +830,6 @@
         setTimeout(() => startRound(null, labels[getLang()] || labels.en), 320);
       }, true);
 
-      // ── Choose game → category overlay ──
       function openCatOverlay() {
         const overlay = document.getElementById('categoryOverlay');
         if (!overlay) return;
@@ -879,7 +853,6 @@
         if (e.target === e.currentTarget) closeCatOverlay();
       });
 
-      // Wire each category tile → open a level-filtered round
       document.querySelectorAll('#categoryOverlay .cat-tile').forEach(tile => {
         tile.addEventListener('click', e => {
           e.stopImmediatePropagation();
@@ -892,7 +865,6 @@
         }, true);
       });
 
-      // ── Music player ──
       (function wireMusic() {
         const btn = document.getElementById('musicPlay');
         const audio = document.getElementById('audio');
@@ -901,7 +873,6 @@
         const iconPause = document.getElementById('iconPause');
         const eq = document.getElementById('musicEq');
         if (!btn || !audio) return;
-        // lazy load: hydrate source only on first play
         let loaded = false;
         function ensureSource() {
           if (loaded) return;
@@ -934,12 +905,10 @@
         }, true);
       })();
 
-      // ── Campfire crackle sound (real fireplace mp3) ──
       (function wireFireSound() {
         const fireBtn = document.getElementById('fireBtn');
         const fireAudio = document.getElementById('fireAudio');
         if (!fireBtn || !fireAudio) return;
-        // lazy load: hydrate source only on first play
         let loaded = false;
         function ensureSource() {
           if (loaded) return;
@@ -968,7 +937,6 @@
         }, true);
       })();
 
-      // ── Rising embers from the campfire ──
       (function emberLoop() {
         const layer = document.getElementById('fireSparks2');
         if (!layer) return;
@@ -988,7 +956,6 @@
         setInterval(spawn, 220);
       })();
 
-      // Apply translations on first load (after app.js may have failed)
       applyLangAll();
     });
   </script>
