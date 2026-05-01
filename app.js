@@ -1049,9 +1049,21 @@ function syncResumeButton() {
   const btn = document.getElementById('btnResume');
   const lastRound = readLastRound();
   
-  if (!btn) return;
+  if (!btn) {
+    console.log('[Snakke] btnResume not found');
+    return;
+  }
   
   const hasRound = lastRound && Array.isArray(lastRound.cardIds) && lastRound.cardIds.length > 0;
+  
+  console.log('[Snakke] syncResumeButton:', {
+    hasRound,
+    lastRoundExists: !!lastRound,
+    cardIdsArray: Array.isArray(lastRound?.cardIds),
+    cardIdsLength: lastRound?.cardIds?.length,
+    btnHidden: btn.hasAttribute('hidden'),
+    btnDisplay: btn.style.display
+  });
   
   if (hasRound) {
     btn.removeAttribute('hidden');
@@ -1066,6 +1078,12 @@ function syncResumeButton() {
     if (badge) {
       badge.textContent = `${progress}/${total}`;
     }
+    
+    console.log('[Snakke] Button should be visible now:', {
+      hidden: btn.hasAttribute('hidden'),
+      display: btn.style.display,
+      progress: `${progress}/${total}`
+    });
   } else {
     btn.setAttribute('hidden', '');
     btn.style.display = 'none';
