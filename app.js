@@ -1061,11 +1061,13 @@ function syncResumeButton() {
     lastRound,
     cardIds: lastRound?.cardIds,
     idx: lastRound?.idx,
+    cardIdsLength: lastRound?.cardIds?.length,
     storageKey: STORAGE.lastRound,
     localStorageRaw: localStorage.getItem(STORAGE.lastRound)
   });
   
   if (hasRound) {
+    console.log('[Snakke] Showing button - hasRound is true');
     btn.removeAttribute('hidden');
     btn.style.display = 'inline-flex';
     btn.style.visibility = 'visible';
@@ -1075,13 +1077,32 @@ function syncResumeButton() {
     const progress = Math.min((lastRound.idx || 0) + 1, total);
     const badge    = document.getElementById('resumeChipCount');
     
+    console.log('[Snakke] Calculating progress:', { 
+      idx: lastRound.idx, 
+      total, 
+      progress: (lastRound.idx || 0) + 1,
+      finalProgress: progress 
+    });
+    
     if (badge) {
       badge.textContent = `${progress}/${total}`;
       console.log('[Snakke] Updated badge:', { progress, total });
     } else {
       console.error('[Snakke] resumeChipCount badge not found');
     }
+    
+    // Verify button is actually visible
+    setTimeout(() => {
+      console.log('[Snakke] Button visibility check:', {
+        display: btn.style.display,
+        visibility: btn.style.visibility,
+        hidden: btn.hasAttribute('hidden'),
+        offsetWidth: btn.offsetWidth,
+        offsetHeight: btn.offsetHeight
+      });
+    }, 50);
   } else {
+    console.log('[Snakke] Hiding button - hasRound is false');
     btn.setAttribute('hidden', '');
     btn.style.display = 'none';
     btn.style.visibility = 'hidden';
