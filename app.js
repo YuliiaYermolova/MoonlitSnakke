@@ -1094,6 +1094,7 @@ function syncResumeButton() {
     // Verify button is actually visible
     setTimeout(() => {
       const computedStyle = getComputedStyle(btn);
+      const rect = btn.getBoundingClientRect();
       console.log('[Snakke] Button visibility check:', {
         display: btn.style.display,
         computedDisplay: computedStyle.display,
@@ -1103,16 +1104,38 @@ function syncResumeButton() {
         offsetWidth: btn.offsetWidth,
         offsetHeight: btn.offsetHeight,
         opacity: computedStyle.opacity,
-        zIndex: computedStyle.zIndex
+        zIndex: computedStyle.zIndex,
+        position: computedStyle.position,
+        top: computedStyle.top,
+        left: computedStyle.left,
+        rect: {
+          top: rect.top,
+          left: rect.left,
+          width: rect.width,
+          height: rect.height,
+          visible: rect.width > 0 && rect.height > 0
+        }
       });
       
-      // Force button to be visible
+      // Check if button is in viewport
+      const isInViewport = rect.top >= 0 && rect.left >= 0 && 
+                          rect.bottom <= window.innerHeight && 
+                          rect.right <= window.innerWidth;
+      
+      console.log('[Snakke] Button in viewport:', isInViewport);
+      
+      // Force button to be visible and positioned
       btn.style.display = 'inline-flex !important';
       btn.style.visibility = 'visible !important';
       btn.style.opacity = '1 !important';
       btn.style.pointerEvents = 'auto !important';
+      btn.style.position = 'relative !important';
+      btn.style.zIndex = '9999 !important';
+      btn.style.backgroundColor = 'red !important';
+      btn.style.color = 'white !important';
+      btn.style.border = '2px solid white !important';
       
-      console.log('[Snakke] Forced visibility styles applied');
+      console.log('[Snakke] Forced visibility and positioning applied');
     }, 50);
   } else {
     console.log('[Snakke] Hiding button - hasRound is false');
