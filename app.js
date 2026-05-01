@@ -1030,12 +1030,17 @@ function persistLastRound() {
     savedAt: new Date().toISOString(),
   };
   
-  writeJSON(STORAGE.lastRound, data);
+  localStorage.setItem(STORAGE.lastRound, JSON.stringify(data));
   syncResumeButton();
 }
 
 function readLastRound() {
-  return readJSON(STORAGE.lastRound, null);
+  const raw = localStorage.getItem(STORAGE.lastRound);
+  try {
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
 }
 
 function syncResumeButton() {
@@ -1049,13 +1054,15 @@ function syncResumeButton() {
   
   if (hasRound) {
     const total = lastRound.cardIds.length;
-    const current = lastRound.currentIndex || lastRound.idx || 0;
+    const current = lastRound.currentIndex !== undefined ? lastRound.currentIndex : (lastRound.idx || 0);
     const progress = Math.min(current + 1, total);
     badge.textContent = `${progress}/${total}`;
     badge.removeAttribute('hidden');
+    btn.classList.add('has-session');
   } else {
     badge.textContent = '0/0';
     badge.setAttribute('hidden', '');
+    btn.classList.remove('has-session');
   }
 }
 
@@ -1068,27 +1075,36 @@ function resumeLastRound() {
 
   const cards = resolveStoredDeck(lastRound.cardIds);
   if (!cards.length) {
-    removeStored(STORAGE.lastRound);
+    localStorage.removeItem(STORAGE.lastRound);
     syncResumeButton();
     showToast(t(TOAST.resumeMissing));
     return;
   }
 
+  // Close ALL open overlays first to prevent UI conflicts
+  document.querySelectorAll('.overlay.open').forEach(ov => ov.classList.remove('open'));
+  document.body.style.overflow = ''; 
+
   // Support both currentIndex and idx fields
   const rawIdx = lastRound.currentIndex !== undefined ? lastRound.currentIndex : (lastRound.idx || 0);
   const safeIndex = Math.max(0, Math.min(rawIdx, cards.length - 1));
   
-  openDeckDirect(cards, cards[safeIndex].id, {
-    ...lastRound.roundMeta,
-    label: lastRound.roundMeta?.label || t(ROUND_TITLES.resume),
-  });
+  // Important: set global idx BEFORE calling openDeckDirect to prevent persistLastRound from overwriting with 0
+  idx = safeIndex;
 
-  track('round_resumed', {
-    source: lastRound.roundMeta?.source || 'resume',
-    partnerMode: !!lastRound.roundMeta?.partnerMode,
-    size: cards.length,
-    index: safeIndex
-  });
+  setTimeout(() => {
+    openDeckDirect(cards, cards[safeIndex].id, {
+      ...lastRound.roundMeta,
+      label: lastRound.roundMeta?.label || t(ROUND_TITLES.resume),
+    });
+
+    track('round_resumed', {
+      source: lastRound.roundMeta?.source || 'resume',
+      partnerMode: !!lastRound.roundMeta?.partnerMode,
+      size: cards.length,
+      index: safeIndex
+    });
+  }, 50);
 }
 
 // ── RULES ──
