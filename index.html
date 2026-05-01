@@ -23,8 +23,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preload" href="https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuGKYAZ9hjp-Ek-_EeA.woff2" as="font" type="font/woff2" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="preload" href="style.css?v=6" as="style" />
-  <link rel="stylesheet" href="style.css?v=6" />
+  <link rel="preload" href="style.css?v=7" as="style" />
+  <link rel="stylesheet" href="style.css?v=7" />
 </head>
 <body>
   <script>
@@ -683,6 +683,108 @@
           state.idx = 0;
           showCard(state.deck[0]);
         }
+      }, true);
+
+      // ── Action buttons (Fav, Share, Export) ──
+      document.getElementById('modalFav')?.addEventListener('click', e => {
+        e.stopImmediatePropagation();
+        if (!state.deck.length) return;
+        const card = state.deck[state.idx];
+        // Try to use app.js toggleSave if available
+        if (typeof toggleSave === 'function') {
+          toggleSave(card.id);
+        } else {
+          // Fallback: just show feedback
+          const btn = document.getElementById('modalFav');
+          const isSaved = btn?.getAttribute('aria-pressed') === 'true';
+          btn?.setAttribute('aria-pressed', String(!isSaved));
+          btn.textContent = isSaved ? '♡' : '♥';
+        }
+      }, true);
+
+      document.getElementById('modalShare')?.addEventListener('click', async (e) => {
+        e.stopImmediatePropagation();
+        if (!state.deck.length) return;
+        const card = state.deck[state.idx];
+        const text = card[getLang()] || card.en || card.ru || '';
+        const url = window.location.href.split('#')[0] + '#card=' + card.id + '&lang=' + getLang();
+        try {
+          if (navigator.share) {
+            await navigator.share({ title: 'Snakke', text: text, url: url });
+          } else if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(url);
+            alert('Ссылка скопирована!');
+          }
+        } catch (err) {
+          console.log('Share failed', err);
+        }
+      }, true);
+
+      document.getElementById('modalExport')?.addEventListener('click', async (e) => {
+        e.stopImmediatePropagation();
+        if (!state.deck.length) return;
+        const card = state.deck[state.idx];
+        const text = card[getLang()] || card.en || card.ru || '';
+
+        // Create canvas and export
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const width = 800, height = 1000;
+        canvas.width = width; canvas.height = height;
+
+        // Background gradient
+        const grad = ctx.createLinearGradient(0, 0, 0, height);
+        grad.addColorStop(0, '#0f2448');
+        grad.addColorStop(0.5, '#091830');
+        grad.addColorStop(1, '#060e1c');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, width, height);
+
+        // Category badge
+        const cat = card.category || 'light';
+        const catLabels = { light: { en: 'LIGHT', no: 'LETT', ru: 'СВЕТЛЫЕ' }, deep: { en: 'DEEP', no: 'DYPT', ru: 'ГЛУБОКИЕ' }, bold: { en: 'BOLD', no: 'MODIG', ru: 'СМЕЛЫЕ' } };
+        const catLabel = catLabels[cat]?.[getLang()] || catLabels[cat]?.en || cat.toUpperCase();
+        ctx.fillStyle = '#64c8a6';
+        ctx.font = '600 14px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(catLabel, width/2, 80);
+
+        // Question text
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '400 36px "DM Serif Display", serif';
+        const words = text.split(' ');
+        let line = '';
+        let y = height/2 - 50;
+        const lineHeight = 48;
+        const maxWidth = width - 80;
+        for (let i = 0; i < words.length; i++) {
+          const testLine = line + words[i] + ' ';
+          const metrics = ctx.measureText(testLine);
+          if (metrics.width > maxWidth && i > 0) {
+            ctx.fillText(line, width/2, y);
+            line = words[i] + ' ';
+            y += lineHeight;
+          } else {
+            line = testLine;
+          }
+        }
+        ctx.fillText(line, width/2, y);
+
+        // Footer
+        ctx.fillStyle = '#a0b0d0';
+        ctx.font = '12px Inter, sans-serif';
+        ctx.fillText('Snakke — Questions for Couples', width/2, height - 60);
+
+        // Download
+        canvas.toBlob(blob => {
+          if (!blob) return;
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `snakke-card-${card.id}.png`;
+          a.click();
+          URL.revokeObjectURL(url);
+        }, 'image/png');
       }, true);
 
       // ── Start game → random across all levels ──
