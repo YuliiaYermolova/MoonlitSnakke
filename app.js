@@ -1020,12 +1020,14 @@ function bumpSession() {
 
 function persistLastRound() {
   if (!deck.length) return;
-  writeJSON(STORAGE.lastRound, {
+  const data = {
     cardIds: deck.map(card => card.id),
     idx,
     roundMeta,
     savedAt: new Date().toISOString(),
-  });
+  };
+  console.log('[Snakke] persistLastRound:', { deckLength: deck.length, idx, data });
+  writeJSON(STORAGE.lastRound, data);
   syncResumeButton();
 }
 
@@ -1041,14 +1043,23 @@ function syncResumeButton() {
     return;
   }
   const hasRound = lastRound && Array.isArray(lastRound.cardIds) && lastRound.cardIds.length > 0;
-  console.log('[Snakke] syncResumeButton:', { hasRound, lastRound });
+  console.log('[Snakke] syncResumeButton:', { 
+    hasRound, 
+    lastRound,
+    cardIds: lastRound?.cardIds,
+    idx: lastRound?.idx,
+    storageKey: STORAGE.lastRound
+  });
   if (hasRound) {
     btn.removeAttribute('hidden');
     btn.style.display = 'inline-flex';
     const total    = lastRound.cardIds.length;
     const progress = Math.min((lastRound.idx || 0) + 1, total);
     const badge    = document.getElementById('resumeChipCount');
-    if (badge) badge.textContent = `${progress}/${total}`;
+    if (badge) {
+      badge.textContent = `${progress}/${total}`;
+      console.log('[Snakke] Updated badge:', { progress, total });
+    }
   } else {
     btn.setAttribute('hidden', '');
     btn.style.display = 'none';
@@ -1788,6 +1799,7 @@ function animateTo(newIdx) {
     idx = newIdx;
     document.getElementById('modalQuestion').textContent = deck[idx][lang] || deck[idx].ru || deck[idx].en;
     updateModalMeta();
+    persistLastRound();
     bumpSession();
     track('card_advanced', { index: idx + 1, source: roundMeta.source });
     return;
@@ -1799,6 +1811,7 @@ function animateTo(newIdx) {
     idx = newIdx;
     document.getElementById('modalQuestion').textContent = deck[idx][lang] || deck[idx].ru || deck[idx].en;
     updateModalMeta();
+    persistLastRound();
     modalPanel.classList.remove('card-falling');
     modalPanel.classList.add('card-rising');
     modalOverlay.classList.remove('fire-burst');
