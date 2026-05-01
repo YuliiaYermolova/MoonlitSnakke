@@ -1124,18 +1124,22 @@ function syncResumeButton() {
       
       console.log('[Snakke] Button in viewport:', isInViewport);
       
-      // Force button to be visible and positioned
+      // Force button to be visible and positioned at top of page
       btn.style.display = 'inline-flex !important';
       btn.style.visibility = 'visible !important';
       btn.style.opacity = '1 !important';
       btn.style.pointerEvents = 'auto !important';
-      btn.style.position = 'relative !important';
-      btn.style.zIndex = '9999 !important';
+      btn.style.position = 'fixed !important';
+      btn.style.zIndex = '99999 !important';
+      btn.style.top = '20px !important';
+      btn.style.left = '20px !important';
       btn.style.backgroundColor = 'red !important';
       btn.style.color = 'white !important';
       btn.style.border = '2px solid white !important';
+      btn.style.padding = '10px 15px !important';
+      btn.style.fontSize = '16px !important';
       
-      console.log('[Snakke] Forced visibility and positioning applied');
+      console.log('[Snakke] Forced button to fixed position at top-left');
     }, 50);
   } else {
     console.log('[Snakke] Hiding button - hasRound is false');
