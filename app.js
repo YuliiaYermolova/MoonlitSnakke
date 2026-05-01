@@ -1069,45 +1069,11 @@ function syncResumeButton() {
   if (hasRound) {
     console.log('[Snakke] Showing button - hasRound is true');
     
-    // Force button to be visible in its natural position
-    btn.style.cssText = `
-      display: inline-flex !important;
-      visibility: visible !important;
-      opacity: 1 !important;
-      pointer-events: auto !important;
-      position: relative !important;
-      z-index: 501 !important;
-      background-color: rgba(8,18,36,0.45) !important;
-      color: var(--w) !important;
-      border: 1px solid var(--border) !important;
-      padding: 9px 12px !important;
-      font-size: 12px !important;
-      transform: none !important;
-      transition: none !important;
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
-    `;
-    
-    // Immediate check after applying styles
-    setTimeout(() => {
-      const rect = btn.getBoundingClientRect();
-      console.log('[Snakke] Immediate check after style application:', {
-        rect: {
-          top: rect.top,
-          left: rect.left,
-          width: rect.width,
-          height: rect.height,
-          bottom: rect.bottom,
-          right: rect.right
-        },
-        visible: rect.width > 0 && rect.height > 0,
-        inViewport: rect.top >= 0 && rect.left >= 0 && 
-                   rect.bottom <= window.innerHeight && 
-                   rect.right <= window.innerWidth
-      });
-    }, 10);
-    
+    // Show button with proper styling
     btn.removeAttribute('hidden');
+    btn.style.display = 'inline-flex';
+    btn.style.visibility = 'visible';
+    btn.style.pointerEvents = 'auto';
     
     const total    = lastRound.cardIds.length;
     const progress = Math.min((lastRound.idx || 0) + 1, total);
@@ -1126,61 +1092,6 @@ function syncResumeButton() {
     } else {
       console.error('[Snakke] resumeChipCount badge not found');
     }
-    
-    // Monitor button visibility over time and check for mobile class
-    let checkCount = 0;
-    const interval = setInterval(() => {
-      checkCount++;
-      const buttonElement = document.getElementById('btnResume');
-      if (!buttonElement) {
-        console.log('[Snakke] Button element not found in check');
-        clearInterval(interval);
-        return;
-      }
-      
-      const rect = buttonElement.getBoundingClientRect();
-      const computedStyle = getComputedStyle(buttonElement);
-      const htmlElement = document.documentElement;
-      
-      console.log(`[Snakke] Button check ${checkCount}:`, {
-        visible: rect.width > 0 && rect.height > 0,
-        display: computedStyle.display,
-        computedDisplay: computedStyle.display,
-        visibility: computedStyle.visibility,
-        opacity: computedStyle.opacity,
-        position: computedStyle.position,
-        zIndex: computedStyle.zIndex,
-        isMobile: htmlElement.classList.contains('mobile'),
-        windowWidth: window.innerWidth,
-        cssText: buttonElement.style.cssText.substring(0, 100) + '...'
-      });
-      
-      // Force styles again if they're being overridden
-      if (checkCount === 2 && rect.width === 0) {
-        console.log('[Snakke] Re-applying forced styles');
-        buttonElement.style.cssText = `
-          display: inline-flex !important;
-          visibility: visible !important;
-          opacity: 1 !important;
-          pointer-events: auto !important;
-          position: fixed !important;
-          z-index: 99999 !important;
-          top: 20px !important;
-          left: 20px !important;
-          background-color: red !important;
-          color: white !important;
-          border: 2px solid white !important;
-          padding: 10px 15px !important;
-          font-size: 16px !important;
-          transform: none !important;
-        `;
-      }
-      
-      if (checkCount >= 5) {
-        clearInterval(interval);
-        console.log('[Snakke] Stopped monitoring button');
-      }
-    }, 1000);
     
   } else {
     console.log('[Snakke] Hiding button - hasRound is false');
