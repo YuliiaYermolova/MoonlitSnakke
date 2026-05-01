@@ -1723,22 +1723,42 @@ function closeModal() {
 }
 
 function setupModalListeners() {
-  document.getElementById('modalNext').addEventListener('click', () => animateTo((idx+1) % deck.length));
-  document.getElementById('modalPrev').addEventListener('click', () => animateTo((idx-1+deck.length) % deck.length));
-  document.getElementById('modalClose').addEventListener('click', closeModal);
-  modalOverlay.addEventListener('click', e => { if (e.target===e.currentTarget) closeModal(); });
+  console.log('[DEBUG] Setting up modal listeners');
 
-  document.getElementById('modalShuffle').addEventListener('click', function() {
+  const modalNext = document.getElementById('modalNext');
+  const modalPrev = document.getElementById('modalPrev');
+  const modalClose = document.getElementById('modalClose');
+  const modalShuffle = document.getElementById('modalShuffle');
+  const modalFav = document.getElementById('modalFav');
+  const modalShare = document.getElementById('modalShare');
+  const modalExport = document.getElementById('modalExport');
+
+  console.log('[DEBUG] Buttons found:', { modalNext, modalPrev, modalClose, modalShuffle, modalFav, modalShare, modalExport });
+
+  if (modalNext) modalNext.addEventListener('click', () => animateTo((idx+1) % deck.length));
+  if (modalPrev) modalPrev.addEventListener('click', () => animateTo((idx-1+deck.length) % deck.length));
+  if (modalClose) modalClose.addEventListener('click', () => { console.log('[DEBUG] Close clicked'); closeModal(); });
+  if (modalOverlay) modalOverlay.addEventListener('click', e => { if (e.target===e.currentTarget) closeModal(); });
+
+  if (modalShuffle) modalShuffle.addEventListener('click', function() {
     this.classList.add('spin'); setTimeout(() => this.classList.remove('spin'), 440);
     animateTo((idx + 1 + Math.floor(Math.random()*(deck.length-1))) % deck.length);
     track('deck_shuffled', { source: roundMeta.source });
   });
 
   // Card action buttons
-  document.getElementById('modalFav').addEventListener('click', () => { if (deck.length) toggleSave(deck[idx].id); });
+  if (modalFav) modalFav.addEventListener('click', (e) => {
+    console.log('[DEBUG] Fav clicked, deck.length:', deck.length, 'idx:', idx, 'card:', deck[idx]);
+    e.stopPropagation();
+    if (deck.length && deck[idx]) {
+      toggleSave(deck[idx].id);
+    }
+  });
 
-  document.getElementById('modalShare').addEventListener('click', async () => {
-    if (!deck.length) return;
+  if (modalShare) modalShare.addEventListener('click', async (e) => {
+    console.log('[DEBUG] Share clicked');
+    e.stopPropagation();
+    if (!deck.length || !deck[idx]) return;
     const url = buildShareUrl();
     const shareText = currentQuestionText();
     try {
@@ -1752,17 +1772,22 @@ function setupModalListeners() {
         throw new Error('share unavailable');
       }
       track('card_shared', { id: deck[idx].id, source: roundMeta.source });
-    } catch {
+    } catch(err) {
+      console.log('[DEBUG] Share error:', err);
       showToast(t(TOAST.shareError));
     }
   });
 
-  document.getElementById('modalExport')?.addEventListener('click', async () => {
-    if (!deck.length) return;
+  if (modalExport) modalExport.addEventListener('click', async (e) => {
+    console.log('[DEBUG] Export clicked');
+    e.stopPropagation();
+    if (!deck.length || !deck[idx]) return;
     const card = deck[idx];
     const text = card[lang] || card.ru || card.en;
-    exportCard(card, text);
+    await exportCard(card, text);
   });
+
+  console.log('[DEBUG] Modal listeners setup complete');
 }
 
 // Note: btnShuffle handler moved to inline script in index.html to support spark animation
