@@ -1019,25 +1019,18 @@ function bumpSession() {
 }
 
 function persistLastRound() {
-  if (!deck.length) {
-    console.log('[Snakke] persistLastRound: no deck, skipping');
-    return;
-  }
+  if (!deck || !deck.length) return;
+  
   const data = {
     cardIds: deck.map(card => card.id),
-    idx,
-    roundMeta,
+    idx: idx,
+    currentIndex: idx,
+    roundMeta: roundMeta,
+    scenarioTitle: roundMeta?.label || '',
     savedAt: new Date().toISOString(),
   };
-  console.log('[Snakke] persistLastRound:', { 
-    deckLength: deck.length, 
-    idx, 
-    cardIds: data.cardIds,
-    data 
-  });
+  
   writeJSON(STORAGE.lastRound, data);
-  console.log('[Snakke] persistLastRound: wrote to localStorage, key:', STORAGE.lastRound);
-  console.log('[Snakke] localStorage after write:', localStorage.getItem(STORAGE.lastRound));
   syncResumeButton();
 }
 
@@ -1685,10 +1678,13 @@ function renderResumeGrid() {
   
   empty?.classList.remove('visible');
   
-  // Show last round as a clickable session card
+  // Use the stored index and ensure it's valid
   const current = lastRound.currentIndex !== undefined ? lastRound.currentIndex : (lastRound.idx || 0);
   const total = lastRound.cardIds.length;
   const progress = `${current + 1}/${total}`;
+  
+  // Use label from metadata if available
+  const roundTitle = lastRound.scenarioTitle || lastRound.roundMeta?.label || t(ROUND_TITLES.resume);
   
   const card = document.createElement('div');
   card.className = 'card-item';
@@ -1696,10 +1692,10 @@ function renderResumeGrid() {
   card.innerHTML = `
     <div class="card-item__top">
       <span class="card-item__num">${progress}</span>
-      <span class="card-item__tag card-item__tag--deep">${lastRound.scenarioTitle || 'Session'}</span>
+      <span class="card-item__tag card-item__tag--deep">${roundTitle}</span>
     </div>
     <div class="card-item__preview">
-      ${lastRound.scenarioDesc || 'Continue your last game session'}
+      ${lastRound.scenarioDesc || t({en: 'Continue your last game session', no: 'Fortsett din siste spilløkt', ru: 'Продолжить последнюю сессию'})}
     </div>
     <div class="card-item__footer">
       <span class="card-item__cta">${t({en: 'Continue →', no: 'Fortsett →', ru: 'Продолжить →'})}</span>
@@ -1710,7 +1706,9 @@ function renderResumeGrid() {
     e.preventDefault();
     e.stopPropagation();
     closeResumeOverlay();
-    setTimeout(() => resumeLastRound(), 150);
+    setTimeout(() => {
+      resumeLastRound();
+    }, 100);
   });
   
   grid.appendChild(card);
