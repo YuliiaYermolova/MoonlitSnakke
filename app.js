@@ -2241,6 +2241,30 @@ function init() {
   setTimeout(() => {
     console.log('[Snakke] init: timeout callback, calling syncResumeButton');
     syncResumeButton();
+    
+    // Force button to be visible after sync
+    setTimeout(() => {
+      const btn = document.getElementById('btnResume');
+      if (btn) {
+        console.log('[Snakke] Force showing button after timeout');
+        btn.removeAttribute('hidden');
+        btn.style.display = 'inline-flex';
+        btn.style.visibility = 'visible';
+        btn.style.pointerEvents = 'auto';
+        console.log('[Snakke] Button forced visible:', {
+          hidden: btn.hasAttribute('hidden'),
+          display: btn.style.display,
+          visible: btn.offsetWidth > 0 && btn.offsetHeight > 0,
+          rect: btn.getBoundingClientRect(),
+          computedStyle: {
+            color: getComputedStyle(btn).color,
+            backgroundColor: getComputedStyle(btn).backgroundColor,
+            opacity: getComputedStyle(btn).opacity,
+            zIndex: getComputedStyle(btn).zIndex
+          }
+        });
+      }
+    }, 200);
   }, 100);
 }
 if (document.readyState === 'loading') {
